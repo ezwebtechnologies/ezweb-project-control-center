@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { Pencil, Trash2 } from "lucide-react";
 import { deleteProject, updateProject } from "@/app/actions/projects";
+import { listClients } from "@/app/actions/clients";
 import { projectUpdateFormSchema } from "@/lib/validations";
 import { ConfirmDestructiveDialog } from "@/components/ui/confirm-destructive-dialog";
 import { Button } from "@/components/ui/button";
@@ -59,15 +60,15 @@ function FieldError({ message }: { message?: string }) {
 
 export function ProjectDetailActions({
   project,
-  clients,
+  /** Optional: caller may pre-supply clients. If absent, they load on first dialog open. */
+  clients: initialClients,
   compact = false,
   toolbar = false,
   className,
 }: {
   project: ProjectPayload;
-  clients: ClientOpt[];
+  clients?: ClientOpt[];
   compact?: boolean;
-  /** Icon actions aligned in a row (e.g. top-right of a summary card). */
   toolbar?: boolean;
   className?: string;
 }) {
@@ -75,6 +76,28 @@ export function ProjectDetailActions({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  const [clients, setClients] = useState<ClientOpt[]>(initialClients ?? []);
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const clientsLoadedRef = useRef<boolean>(Boolean(initialClients?.length));
+
+  const ensureClients = useCallback(async () => {
+    if (clientsLoadedRef.current) return;
+    clientsLoadedRef.current = true;
+    setClientsLoading(true);
+    try {
+      const rows = await listClients();
+      setClients(
+        rows.map((c) => ({
+          id: c.id,
+          companyName: c.companyName,
+          name: c.name,
+        }))
+      );
+    } finally {
+      setClientsLoading(false);
+    }
+  }, []);
 
   const editDefaults = useMemo<FormValues>(
     () => ({
@@ -107,9 +130,11 @@ export function ProjectDetailActions({
   function openEdit() {
     reset(editDefaults);
     setEditOpen(true);
+    void ensureClients();
   }
 
   function onSubmitEdit(values: FormValues) {
+    setEditOpen(false);
     startTransition(async () => {
       await updateProject({
         id: values.id,
@@ -120,8 +145,6 @@ export function ProjectDetailActions({
         deadline: values.deadline,
         tags: project.tags ?? [],
       });
-      setEditOpen(false);
-      router.refresh();
     });
   }
 
@@ -139,7 +162,6 @@ export function ProjectDetailActions({
         onConfirm={async () => {
           await deleteProject(project.id);
           router.push("/projects");
-          router.refresh();
         }}
       />
 
@@ -159,7 +181,6 @@ export function ProjectDetailActions({
               size="icon-sm"
               className="rounded-lg"
               onClick={openEdit}
-              disabled={!clients.length}
               aria-label="Edit project"
             >
               <Pencil aria-hidden />
@@ -186,7 +207,6 @@ export function ProjectDetailActions({
                 compact ? "h-7 gap-1 px-2.5 text-xs" : "gap-2"
               )}
               onClick={openEdit}
-              disabled={!clients.length}
             >
               <Pencil className={compact ? "size-3" : "size-4"} aria-hidden />
               Edit
@@ -223,7 +243,7 @@ export function ProjectDetailActions({
                 onValueChange={(v) => setValue("clientId", v ?? "", { shouldValidate: true })}
               >
                 <SelectTrigger className="w-full min-w-0">
-                  <SelectValue />
+                  <SelectValue placeholder={clientsLoading ? "Loading clients…" : undefined} />
                 </SelectTrigger>
                 <SelectContent className="min-w-[var(--anchor-width)]">
                   {clients.map((c) => (
@@ -256,7 +276,7 @@ export function ProjectDetailActions({
               <FieldError message={formState.errors.deadline?.message} />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" disabled={pending || clientsLoading}>
                 Save changes
               </Button>
             </DialogFooter>

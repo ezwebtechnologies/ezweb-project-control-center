@@ -51,19 +51,25 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           style={{ width: collapsed ? 76 : 268 }}
           className={cn(
             "relative z-40 hidden shrink-0 flex-col border-r border-sidebar-border/70",
-            "bg-sidebar/75 backdrop-blur-xl supports-[backdrop-filter]:bg-sidebar/55",
+            "bg-sidebar/80 backdrop-blur-xl supports-[backdrop-filter]:bg-sidebar/60",
+            "shadow-[inset_-1px_0_0_0_oklch(1_0_0/4%)]",
+            "before:pointer-events-none before:absolute before:inset-y-8 before:right-0 before:z-10 before:w-px before:bg-gradient-to-b before:from-transparent before:via-sidebar-primary/25 before:to-transparent",
             "lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:h-dvh lg:min-h-0 lg:flex-col",
             "transition-[width] duration-200 ease-out"
           )}
         >
-          <div className="flex h-14 shrink-0 items-center gap-2 border-b border-sidebar-border/60 px-3">
+          <div className="flex h-[3.25rem] shrink-0 items-center gap-2 border-b border-sidebar-border/50 bg-sidebar-accent/[0.12] px-2.5 backdrop-blur-sm">
             <Link
               href="/dashboard"
               prefetch
-              className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-1 py-1 transition-opacity hover:opacity-90"
+              className={cn(
+                "flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-transparent px-1.5 py-1",
+                "transition-[border-color,background-color,box-shadow] duration-200",
+                "hover:border-sidebar-border/60 hover:bg-sidebar-accent/40 hover:shadow-[0_8px_28px_-18px_rgba(0,0,0,0.25)]"
+              )}
             >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary/18 ring-1 ring-sidebar-border/50">
-                <span className="text-[11px] font-semibold tracking-tight text-sidebar-primary">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary/25 to-sidebar-primary/10 shadow-[inset_0_0_0_1px_hsl(var(--sidebar-primary)/0.25)] ring-1 ring-sidebar-border/40">
+                <span className="text-[11px] font-bold tracking-tight text-sidebar-primary">
                   EZ
                 </span>
               </div>
@@ -89,13 +95,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             onNavigate={() => setMobileOpen(false)}
           />
 
-          <div className="mt-auto shrink-0 border-t border-sidebar-border/60 p-2">
+          <div className="mt-auto shrink-0 border-t border-sidebar-border/50 bg-sidebar-accent/[0.08] p-2 backdrop-blur-sm">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className={cn(
-                "w-full justify-start gap-2 text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                "h-10 w-full justify-start gap-2 rounded-xl border border-transparent",
+                "text-sidebar-foreground/70 transition-[background-color,border-color,color,box-shadow] duration-200",
+                "hover:border-sidebar-border/55 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                "hover:shadow-[inset_0_0_0_1px_oklch(1_0_0/6%)]",
                 collapsed && "justify-center px-0"
               )}
               onClick={() => setCollapsed((c) => !c)}

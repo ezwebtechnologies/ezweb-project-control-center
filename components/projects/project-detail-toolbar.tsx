@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -65,7 +64,6 @@ export function ProjectDetailToolbar({
   clients,
   defaults,
 }: Props) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const next = nextLifecycleStage(status);
@@ -93,6 +91,7 @@ export function ProjectDetailToolbar({
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
+    setOpen(false);
     startTransition(async () => {
       await updateProject({
         id: projectId,
@@ -103,8 +102,6 @@ export function ProjectDetailToolbar({
         deadline: values.deadline || null,
         tags,
       });
-      setOpen(false);
-      router.refresh();
     });
   }
 
@@ -138,7 +135,6 @@ export function ProjectDetailToolbar({
             onClick={() => {
               startTransition(async () => {
                 await advanceProjectStage(projectId);
-                router.refresh();
               });
             }}
           >

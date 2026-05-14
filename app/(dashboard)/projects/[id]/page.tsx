@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { listClients } from "@/app/actions/clients";
 import { getProject } from "@/lib/queries/project-detail";
 import { parseRequirementsGatheringData } from "@/lib/requirements-gathering";
 import {
@@ -15,11 +14,13 @@ import { ProjectStageOptionsPanel } from "@/components/projects/project-stage-op
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { coerceProjectStatus } from "@/lib/project-lifecycle";
+import { timed } from "@/lib/perf-log";
 
 type PageProps = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
+  // Hits Next.js Data Cache (and is deduped with the page render via React.cache).
   const project = await getProject(id);
   if (!project) return { title: "Project" };
   return {
@@ -31,14 +32,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [project, clients] = await Promise.all([getProject(id), listClients()]);
+
+  // Single fetch — every downstream consumer (lifecycle path, stage panel,
+  // actions) reads from this one payload. React.cache + Next data cache
+  // guarantees no duplicate DB round trips even if children call getProject().
+  const project = await timed(`page.getProject ${id}`, () => getProject(id));
   if (!project) notFound();
 
-  const clientOpts = clients.map((c) => ({
-    id: c.id,
-    companyName: c.companyName,
-    name: c.name,
-  }));
+  const lifecycleStage = coerceProjectStatus(String(project.status));
+  const archived = Boolean(project.archivedAt);
 
   const actionsPayload = {
     id: project.id,
@@ -49,9 +51,6 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     deadline: project.deadline,
     tags: project.tags,
   };
-
-  const lifecycleStage = coerceProjectStatus(String(project.status));
-  const archived = Boolean(project.archivedAt);
 
   const rg = parseRequirementsGatheringData(project.requirementsGatheringData);
   const quotationTotal = computeQuotationGrandTotal({
@@ -81,6 +80,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/projects"
+          prefetch
           className={buttonVariants({
             variant: "ghost",
             size: "sm",
@@ -91,6 +91,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </Link>
         <Link
           href={`/payments?project=${encodeURIComponent(id)}`}
+          prefetch={false}
           className={buttonVariants({
             variant: "ghost",
             size: "sm",
@@ -108,11 +109,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               <h2 className="min-w-0 flex-1 text-balance text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                 {project.name}
               </h2>
+              {/* clients prop omitted on purpose: loaded lazily on dialog open */}
               <ProjectDetailActions
                 toolbar
                 className="shrink-0 pt-0.5"
                 project={actionsPayload}
-                clients={clientOpts}
               />
             </div>
 
@@ -127,7 +128,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-            <ProjectLifecyclePath
+          <ProjectLifecyclePath
             embedded
             embeddedDense
             projectId={project.id}

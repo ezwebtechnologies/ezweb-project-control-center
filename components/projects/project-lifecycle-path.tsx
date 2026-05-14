@@ -1,7 +1,6 @@
 "use client";
 
 import { Fragment, useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import type { ProjectLifecycleStage } from "@/lib/project-lifecycle";
 import { setProjectLifecycleStage } from "@/app/actions/projects";
@@ -34,7 +33,6 @@ export function ProjectLifecyclePath({
   embeddedDense = false,
   compact = false,
 }: Props) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
   const [pathError, setPathError] = useState<string | null>(null);
@@ -57,9 +55,7 @@ export function ProjectLifecyclePath({
       setLoadingIdx(null);
       if (!result.ok) {
         setPathError(result.error);
-        return;
       }
-      router.refresh();
     });
   }
 

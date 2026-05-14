@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { saveRequirementsGatheringData } from "@/app/actions/projects";
 import { Button } from "@/components/ui/button";
@@ -49,7 +48,6 @@ type Props = {
 };
 
 export function RequirementsGatheringPanel({ projectId, initialData, archived }: Props) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [data, setData] = useState<RequirementsGatheringData>(() =>
     parseRequirementsGatheringData(initialData)
@@ -84,7 +82,6 @@ export function RequirementsGatheringPanel({ projectId, initialData, archived }:
         checklist: normalized.checklist,
         advanceToProposal: true,
       });
-      router.refresh();
     });
   }
 

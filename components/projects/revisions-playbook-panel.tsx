@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import {
   advanceRevisionsToDelivered,
@@ -37,7 +36,6 @@ export function RevisionsPlaybookPanel({
   postDeliveryData,
   archived,
 }: Props) {
-  const router = useRouter();
   const snapshot = JSON.stringify({ uat: clientUatData ?? null, pd: postDeliveryData ?? null });
   const uat = parseClientUatData(clientUatData);
   const merged = mergePostDeliveryWithIssues(parsePostDeliveryData(postDeliveryData), uat.issues);
@@ -68,7 +66,6 @@ export function RevisionsPlaybookPanel({
       try {
         await saveRevisionApprovalsData({ projectId, revisionApprovals: approvals });
         setFeedback({ ok: true, text: "Revision sign-off saved." });
-        router.refresh();
       } catch {
         setFeedback({ ok: false, text: "Could not save. Try again." });
       }
@@ -88,9 +85,7 @@ export function RevisionsPlaybookPanel({
       const r = await advanceRevisionsToDelivered(projectId);
       if (!r.ok) {
         setFeedback({ ok: false, text: r.error });
-        return;
       }
-      router.refresh();
     });
   }
 

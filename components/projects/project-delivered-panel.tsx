@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import {
   advanceDeliveredToClosed,
@@ -48,7 +47,6 @@ export function ProjectDeliveredPanel({
   payments,
   archived,
 }: Props) {
-  const router = useRouter();
   const snapshot = JSON.stringify(postDeliveryData ?? null);
   const uat = parseClientUatData(clientUatData);
   const base = mergePostDeliveryWithIssues(parsePostDeliveryData(postDeliveryData), uat.issues);
@@ -79,7 +77,6 @@ export function ProjectDeliveredPanel({
       try {
         await savePostDeliveryHypercare({ projectId, hypercare });
         setFeedback({ ok: true, text: "Hypercare progress saved." });
-        router.refresh();
       } catch {
         setFeedback({ ok: false, text: "Could not save. Try again." });
       }
@@ -99,9 +96,7 @@ export function ProjectDeliveredPanel({
       const r = await advanceDeliveredToClosed(projectId);
       if (!r.ok) {
         setFeedback({ ok: false, text: r.error });
-        return;
       }
-      router.refresh();
     });
   }
 

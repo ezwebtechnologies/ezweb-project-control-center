@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import {
   advanceProposalToAdvancePayment,
@@ -45,7 +44,6 @@ export function ProposalPricingPanel({
   archived,
   defaultRecipientEmail,
 }: Props) {
-  const router = useRouter();
   const [sendPending, startSendTransition] = useTransition();
   const [advancePending, startAdvance] = useTransition();
   const [toEmail, setToEmail] = useState(() => (defaultRecipientEmail ?? "").trim());
@@ -161,7 +159,6 @@ export function ProposalPricingPanel({
       });
       lastPersistedPricingJsonRef.current = stablePricingJson(merged);
       await advanceProposalToAdvancePayment(projectId);
-      router.refresh();
     });
   }
 

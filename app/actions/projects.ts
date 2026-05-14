@@ -89,34 +89,44 @@ export async function createProject(input: unknown) {
 }
 
 export async function updateProject(input: unknown) {
+  const start = performance.now();
   const raw = projectUpdateSchema.parse(input);
   const { id, deadline, startDate, ...data } = raw;
-  const existing = await prisma.project.findFirst({
-    where: { id, deletedAt: null },
-    select: { status: true },
-  });
-  if (!existing) return;
 
   const d = parseDate(deadline ?? null);
   const sd = parseDate(startDate ?? null);
   const priority = computeProjectPriority(d);
 
-  await prisma.project.update({
-    where: { id, deletedAt: null },
-    data: {
-      clientId: data.clientId,
-      name: data.name,
-      description: data.description ?? null,
-      tags: data.tags,
-      deadline: d,
-      startDate: sd,
-      priority,
-      progress: progressForStage(
-        coerceProjectStatus(String(existing.status))
-      ),
-    } as Prisma.ProjectUncheckedUpdateInput,
-  });
+  // Single round trip. `progress` is canonical to `status` and `status` is not
+  // mutated here, so the prior pre-fetch + rewrite was redundant.
+  try {
+    await prisma.project.update({
+      where: { id, deletedAt: null },
+      data: {
+        clientId: data.clientId,
+        name: data.name,
+        description: data.description ?? null,
+        tags: data.tags,
+        deadline: d,
+        startDate: sd,
+        priority,
+      } as Prisma.ProjectUncheckedUpdateInput,
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2025"
+    ) {
+      return;
+    }
+    throw err;
+  }
+
   revalidateProject(id);
+  if (process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line no-console
+    console.log(`[perf] updateProject ${id} ${(performance.now() - start).toFixed(1)}ms`);
+  }
 }
 
 export async function advanceProjectStage(id: string) {

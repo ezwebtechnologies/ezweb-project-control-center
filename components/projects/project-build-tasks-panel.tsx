@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import type { TaskStatus } from "@prisma/client";
 import { setProjectLifecycleStage, updateProjectTaskStatus } from "@/app/actions/projects";
@@ -37,7 +36,6 @@ type Props = {
 };
 
 export function ProjectBuildTasksPanel({ projectId, tasks, archived }: Props) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [movePending, startMoveTransition] = useTransition();
   const [moveError, setMoveError] = useState<string | null>(null);
@@ -72,8 +70,7 @@ export function ProjectBuildTasksPanel({ projectId, tasks, archived }: Props) {
                   const next = v as TaskStatus;
                   if (next === task.status) return;
                   startTransition(async () => {
-                    const r = await updateProjectTaskStatus({ taskId: task.id, status: next });
-                    if (r.ok) router.refresh();
+                    await updateProjectTaskStatus({ taskId: task.id, status: next });
                   });
                 }}
               >
@@ -123,9 +120,7 @@ export function ProjectBuildTasksPanel({ projectId, tasks, archived }: Props) {
                 const r = await setProjectLifecycleStage(projectId, "CLIENT_UAT");
                 if (!r.ok) {
                   setMoveError(r.error);
-                  return;
                 }
-                router.refresh();
               });
             }}
             className="flex w-full items-center justify-center gap-2 rounded-lg sm:w-auto"

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { saveAdvancePaymentAndContinue } from "@/app/actions/projects";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ type Props = {
 };
 
 export function AdvancePaymentPanel({ projectId, quotationTotal, archived }: Props) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [advanceRaw, setAdvanceRaw] = useState("");
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
@@ -40,9 +38,7 @@ export function AdvancePaymentPanel({ projectId, quotationTotal, archived }: Pro
       });
       if (!result.ok) {
         setFeedback({ ok: false, text: result.error });
-        return;
       }
-      router.refresh();
     });
   }
 

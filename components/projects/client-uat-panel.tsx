@@ -7,7 +7,6 @@ import {
   useState,
   useTransition,
 } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { completeClientUatStage, saveClientUatData } from "@/app/actions/projects";
 import { Button } from "@/components/ui/button";
@@ -52,7 +51,6 @@ export const ClientUatPanel = forwardRef<ClientUatPanelHandle, Props>(function C
   { projectId, clientUatData, archived, onBusyChange },
   ref
 ) {
-  const router = useRouter();
   const snapshot = JSON.stringify(clientUatData ?? null);
   const [data, setData] = useState<ClientUatPayload>(() => parseClientUatData(clientUatData));
   const [savePending, startSave] = useTransition();
@@ -131,7 +129,6 @@ export const ClientUatPanel = forwardRef<ClientUatPanelHandle, Props>(function C
           outcomes: data.outcomes,
         });
         setFeedback({ kind: "save", ok: true, text: "UAT issues saved." });
-        router.refresh();
       } catch {
         setFeedback({
           kind: "save",
@@ -153,9 +150,7 @@ export const ClientUatPanel = forwardRef<ClientUatPanelHandle, Props>(function C
       });
       if (!r.ok) {
         setFeedback({ kind: "complete", ok: false, text: r.error });
-        return;
       }
-      router.refresh();
     });
   }
 
