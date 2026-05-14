@@ -308,7 +308,3 @@ erDiagram
 | `npm run db:studio` | Prisma Studio |
 
 ---
-
-## License
-
-Private / internal — adjust as appropriate for your organization.
