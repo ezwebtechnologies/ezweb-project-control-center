@@ -1,8 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   Building2,
@@ -17,14 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, formatRelative } from "@/lib/format";
 import { projectStatusLabels } from "@/lib/labels";
 import type { ProjectLifecycleStage } from "@/lib/project-lifecycle";
-
-const DashboardOverviewCharts = dynamic(
-  () =>
-    import("@/components/dashboard/dashboard-overview-charts").then(
-      (m) => m.DashboardOverviewCharts
-    ),
-  { ssr: true }
-);
+import { LazyDashboardCharts } from "@/components/dashboard/lazy-charts";
 
 type FinanceChartRow = {
   label: string;
@@ -48,6 +37,20 @@ type DashboardPayload = {
   }[];
 };
 
+type MetricKey = "totalProjects" | "totalClients" | "totalRevenue" | "profitNet";
+
+const METRICS: {
+  key: MetricKey;
+  title: string;
+  icon: typeof FolderKanban;
+  money?: boolean;
+}[] = [
+  { key: "totalProjects", title: "Total projects", icon: FolderKanban },
+  { key: "totalClients", title: "Total clients", icon: Building2 },
+  { key: "totalRevenue", title: "Revenue", icon: CreditCard, money: true },
+  { key: "profitNet", title: "Profit", icon: TrendingUp, money: true },
+];
+
 export function DashboardView({ data }: { data: DashboardPayload }) {
   return (
     <div className="space-y-8">
@@ -63,6 +66,7 @@ export function DashboardView({ data }: { data: DashboardPayload }) {
         </div>
         <Link
           href="/projects"
+          prefetch
           className={buttonVariants({
             variant: "outline",
             className:
@@ -75,49 +79,29 @@ export function DashboardView({ data }: { data: DashboardPayload }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          {
-            title: "Total projects",
-            value: data.totalProjects,
-            icon: FolderKanban,
-          },
-          {
-            title: "Total clients",
-            value: data.totalClients,
-            icon: Building2,
-          },
-          {
-            title: "Revenue",
-            value: formatMoney(data.totalRevenue),
-            icon: CreditCard,
-          },
-          {
-            title: "Profit",
-            value: formatMoney(data.profitNet),
-            icon: TrendingUp,
-          },
-        ].map((m, i) => (
-          <motion.div
-            key={m.title}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05, duration: 0.25 }}
-          >
-            <Card className="border-border/50 bg-card/50 shadow-sm backdrop-blur-md transition-shadow hover:shadow-md">
+        {METRICS.map((m) => {
+          const raw = data[m.key] as number;
+          const value = m.money ? formatMoney(raw) : raw;
+          const Icon = m.icon;
+          return (
+            <Card
+              key={m.title}
+              className="border-border/50 bg-card/50 shadow-sm backdrop-blur-md transition-shadow hover:shadow-md"
+            >
               <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {m.title}
                 </CardTitle>
-                <m.icon className="size-4 text-muted-foreground" aria-hidden />
+                <Icon className="size-4 text-muted-foreground" aria-hidden />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-semibold tracking-tight">
-                  {m.value}
+                  {value}
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-        ))}
+          );
+        })}
       </div>
 
       <Card className="border-border/50 bg-card/50 backdrop-blur-md">
@@ -132,6 +116,7 @@ export function DashboardView({ data }: { data: DashboardPayload }) {
             <Link
               key={p.id}
               href={`/projects/${p.id}`}
+              prefetch={false}
               className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-background/30 px-3 py-2 transition-colors hover:border-border/70 hover:bg-background/50"
             >
               <div className="min-w-0">
@@ -153,7 +138,7 @@ export function DashboardView({ data }: { data: DashboardPayload }) {
         </CardContent>
       </Card>
 
-      <DashboardOverviewCharts
+      <LazyDashboardCharts
         finance={data.financeChart}
         pipeline={data.pipelineByStatus}
       />

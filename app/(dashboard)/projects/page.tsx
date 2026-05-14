@@ -30,12 +30,18 @@ export const metadata: Metadata = {
   },
 };
 
+function toIso(d: Date | string | null | undefined): string | null {
+  if (!d) return null;
+  const date = typeof d === "string" ? new Date(d) : d;
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 export default async function ProjectsPage() {
   const [projects, clients] = await Promise.all([listProjects(), listClients()]);
   const payload = projects.map((p) => ({
     id: p.id,
     name: p.name,
-    deadline: p.deadline ? p.deadline.toISOString() : null,
+    deadline: toIso(p.deadline),
     status: p.status,
     client: p.client,
   }));

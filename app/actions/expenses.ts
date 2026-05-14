@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { revalidateExpense } from "@/lib/revalidate";
 import { expenseCreateSchema } from "@/lib/validations";
 
 function parseIncurredDate(v: string) {
@@ -24,8 +24,7 @@ export async function createExpense(input: unknown) {
       incurredAt,
     },
   });
-  revalidatePath("/payments");
-  revalidatePath("/dashboard");
+  revalidateExpense();
 }
 
 export async function deleteExpense(id: string) {
@@ -44,6 +43,5 @@ export async function deleteExpense(id: string) {
     where: { id: parsed.data },
     data: { deletedAt: new Date() },
   });
-  revalidatePath("/payments");
-  revalidatePath("/dashboard");
+  revalidateExpense();
 }

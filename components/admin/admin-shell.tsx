@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { PanelLeftClose, PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,7 +21,6 @@ import { cn } from "@/lib/utils";
 const STORAGE_KEY = "ezweb-sidebar-collapsed";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -50,19 +47,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <DashboardSearchProvider>
       <div className="flex h-dvh max-h-dvh w-full min-h-0 overflow-hidden bg-background">
-        <motion.aside
+        <aside
+          style={{ width: collapsed ? 76 : 268 }}
           className={cn(
             "relative z-40 hidden shrink-0 flex-col border-r border-sidebar-border/70",
             "bg-sidebar/75 backdrop-blur-xl supports-[backdrop-filter]:bg-sidebar/55",
-            "lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:h-dvh lg:min-h-0 lg:flex-col"
+            "lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:h-dvh lg:min-h-0 lg:flex-col",
+            "transition-[width] duration-200 ease-out"
           )}
-          initial={false}
-          animate={{ width: collapsed ? 76 : 268 }}
-          transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.55 }}
         >
           <div className="flex h-14 shrink-0 items-center gap-2 border-b border-sidebar-border/60 px-3">
             <Link
               href="/dashboard"
+              prefetch
               className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-1 py-1 transition-opacity hover:opacity-90"
             >
               <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary/18 ring-1 ring-sidebar-border/50">
@@ -70,11 +67,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   EZ
                 </span>
               </div>
-              <motion.div
-                className="min-w-0 overflow-hidden"
-                initial={false}
-                animate={{ opacity: collapsed ? 0 : 1, width: collapsed ? 0 : "auto" }}
-                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              <div
+                className={cn(
+                  "min-w-0 overflow-hidden transition-[opacity,width] duration-200 ease-out",
+                  collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                )}
               >
                 <span className="block truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
                   {siteConfig.name}
@@ -82,7 +79,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <span className="block truncate text-[11px] text-muted-foreground">
                   Control center
                 </span>
-              </motion.div>
+              </div>
             </Link>
           </div>
 
@@ -110,17 +107,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               ) : (
                 <PanelLeftClose className="size-4 shrink-0" />
               )}
-              <motion.span
-                className="overflow-hidden whitespace-nowrap text-xs font-medium"
-                initial={false}
-                animate={{ opacity: collapsed ? 0 : 1, width: collapsed ? 0 : "auto" }}
-                transition={{ duration: 0.18 }}
+              <span
+                className={cn(
+                  "overflow-hidden whitespace-nowrap text-xs font-medium transition-[opacity,width] duration-150",
+                  collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                )}
               >
                 Collapse
-              </motion.span>
+              </span>
             </Button>
           </div>
-        </motion.aside>
+        </aside>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent
@@ -153,13 +150,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         >
           <AdminHeader onOpenMobileNav={() => setMobileOpen(true)} />
           <Separator className="opacity-50" />
-          <motion.div
-            key={pathname}
-            className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
             <div
               className="pointer-events-none absolute inset-0 -z-10 opacity-[0.35] dark:opacity-50"
               aria-hidden
@@ -175,7 +166,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
               {children}
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </DashboardSearchProvider>

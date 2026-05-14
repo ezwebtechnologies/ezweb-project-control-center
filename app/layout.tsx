@@ -47,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} dark`}>
-      <body className={`${geistSans.className} min-h-dvh`}>
+      <body className={`${geistSans.className} min-h-dvh bg-background text-foreground antialiased`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

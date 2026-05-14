@@ -25,6 +25,11 @@ export default async function ClientDetailPage({ params }: PageProps) {
   const client = await getClient(id);
   if (!client) notFound();
 
+  const updatedAtIso =
+    typeof client.updatedAt === "string"
+      ? client.updatedAt
+      : new Date(client.updatedAt).toISOString();
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-3">
@@ -44,10 +49,10 @@ export default async function ClientDetailPage({ params }: PageProps) {
       <ClientPortfolio client={client} />
 
       <ClientDetailActions
-        key={client.updatedAt.toISOString()}
+        key={updatedAtIso}
         clientId={client.id}
         businessName={client.companyName}
-        updatedAt={client.updatedAt.toISOString()}
+        updatedAt={updatedAtIso}
         defaults={{
           name: client.name,
           companyName: client.companyName,

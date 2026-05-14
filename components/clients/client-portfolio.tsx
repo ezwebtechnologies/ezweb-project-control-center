@@ -38,7 +38,7 @@ export type ClientPortfolioData = {
     amount: unknown;
     currency: string;
     invoiceNumber: string | null;
-    dueDate: Date | null;
+    dueDate: Date | string | null;
     status: PaymentStatus;
   }[];
 };

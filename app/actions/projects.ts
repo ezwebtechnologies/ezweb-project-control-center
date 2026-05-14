@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { listProjectsDirectory } from "@/lib/queries/projects-list";
+import { revalidateProject } from "@/lib/revalidate";
 import { formatMoney } from "@/lib/format";
 import {
   type ProjectLifecycleStage,
@@ -85,8 +85,7 @@ export async function createProject(input: unknown) {
       tags: raw.tags,
     } as Prisma.ProjectUncheckedCreateInput,
   });
-  revalidatePath("/projects");
-  revalidatePath("/dashboard");
+  revalidateProject();
 }
 
 export async function updateProject(input: unknown) {
@@ -117,9 +116,7 @@ export async function updateProject(input: unknown) {
       ),
     } as Prisma.ProjectUncheckedUpdateInput,
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${id}`);
-  revalidatePath("/dashboard");
+  revalidateProject(id);
 }
 
 export async function advanceProjectStage(id: string) {
@@ -140,9 +137,7 @@ export async function advanceProjectStage(id: string) {
       priority,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${id}`);
-  revalidatePath("/dashboard");
+  revalidateProject(id);
 }
 
 export async function setProjectLifecycleStage(
@@ -259,9 +254,7 @@ export async function setProjectLifecycleStage(
       priority,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${id}`);
-  revalidatePath("/dashboard");
+  revalidateProject(id);
   return { ok: true };
 }
 
@@ -309,9 +302,7 @@ export async function saveRequirementsGatheringData(input: unknown) {
       priority,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${raw.projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(raw.projectId);
 }
 
 export async function saveProposalPricingDraft(input: unknown) {
@@ -339,9 +330,7 @@ export async function saveProposalPricingDraft(input: unknown) {
       requirementsGatheringData: payload as Prisma.InputJsonValue,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${raw.projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(raw.projectId);
 }
 
 export async function advanceProposalToAdvancePayment(projectId: string) {
@@ -367,9 +356,7 @@ export async function advanceProposalToAdvancePayment(projectId: string) {
       priority,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(projectId);
 }
 
 export type AdvancePaymentResult = { ok: true } | { ok: false; error: string };
@@ -443,9 +430,7 @@ export async function saveAdvancePaymentAndContinue(
     );
   });
 
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(projectId);
   return { ok: true };
 }
 
@@ -479,7 +464,7 @@ export async function updateProjectTaskStatus(
     where: { id: raw.taskId },
     data: { status: raw.status },
   });
-  revalidatePath(`/projects/${task.projectId}`);
+  revalidateProject(task.projectId);
   return { ok: true };
 }
 
@@ -509,9 +494,7 @@ export async function saveClientUatData(input: unknown) {
     where: { id: raw.projectId, deletedAt: null },
     data: { clientUatData: payload as Prisma.InputJsonValue },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${raw.projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(raw.projectId);
 }
 
 export type ClientUatAdvanceResult = { ok: true } | { ok: false; error: string };
@@ -563,9 +546,7 @@ export async function completeClientUatStage(
       priority,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${parsed.data.projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(parsed.data.projectId);
   return { ok: true };
 }
 
@@ -596,9 +577,7 @@ export async function saveRevisionApprovalsData(input: unknown) {
       } as Prisma.InputJsonValue,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${raw.projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(raw.projectId);
 }
 
 export type StageAdvanceResult = { ok: true } | { ok: false; error: string };
@@ -635,9 +614,7 @@ export async function advanceRevisionsToDelivered(
       postDeliveryData: pd as Prisma.InputJsonValue,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(projectId);
   return { ok: true };
 }
 
@@ -665,9 +642,7 @@ export async function savePostDeliveryHypercare(input: unknown) {
       } as Prisma.InputJsonValue,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${raw.projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(raw.projectId);
 }
 
 export async function advanceDeliveredToClosed(
@@ -722,9 +697,7 @@ export async function advanceDeliveredToClosed(
       priority,
     },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/dashboard");
+  revalidateProject(projectId);
   return { ok: true };
 }
 
@@ -794,9 +767,7 @@ export async function deleteProject(id: string) {
     where: { id },
     data: { deletedAt: new Date() },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${id}`);
-  revalidatePath("/dashboard");
+  revalidateProject(id);
 }
 
 export async function archiveProject(id: string) {
@@ -804,9 +775,7 @@ export async function archiveProject(id: string) {
     where: { id, deletedAt: null },
     data: { archivedAt: new Date() },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${id}`);
-  revalidatePath("/dashboard");
+  revalidateProject(id);
 }
 
 export async function unarchiveProject(id: string) {
@@ -814,7 +783,5 @@ export async function unarchiveProject(id: string) {
     where: { id, deletedAt: null },
     data: { archivedAt: null },
   });
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${id}`);
-  revalidatePath("/dashboard");
+  revalidateProject(id);
 }

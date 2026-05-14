@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { revalidatePayment } from "@/lib/revalidate";
 import { paymentCreateSchema, paymentUpdateSchema } from "@/lib/validations";
 
 function parseDate(v: string | null | undefined) {
@@ -26,11 +26,7 @@ export async function createPayment(input: unknown) {
       notes: raw.notes ?? null,
     },
   });
-  revalidatePath("/payments");
-  revalidatePath("/dashboard");
-  if (raw.projectId) {
-    revalidatePath(`/projects/${raw.projectId}`);
-  }
+  revalidatePayment(raw.projectId ?? null);
 }
 
 export async function updatePayment(input: unknown) {
@@ -47,11 +43,7 @@ export async function updatePayment(input: unknown) {
       notes: raw.notes ?? null,
     },
   });
-  revalidatePath("/payments");
-  revalidatePath("/dashboard");
-  if (raw.projectId) {
-    revalidatePath(`/projects/${raw.projectId}`);
-  }
+  revalidatePayment(raw.projectId ?? null);
 }
 
 export async function deletePayment(id: string) {
@@ -63,11 +55,7 @@ export async function deletePayment(id: string) {
     where: { id },
     data: { deletedAt: new Date() },
   });
-  revalidatePath("/payments");
-  revalidatePath("/dashboard");
-  if (row?.projectId) {
-    revalidatePath(`/projects/${row.projectId}`);
-  }
+  revalidatePayment(row?.projectId ?? null);
 }
 
 export async function markPaymentReceived(
@@ -94,10 +82,6 @@ export async function markPaymentReceived(
       paymentDate: row.paymentDate ?? new Date(),
     },
   });
-  revalidatePath("/payments");
-  revalidatePath("/dashboard");
-  if (row.projectId) {
-    revalidatePath(`/projects/${row.projectId}`);
-  }
+  revalidatePayment(row.projectId ?? null);
   return { ok: true };
 }

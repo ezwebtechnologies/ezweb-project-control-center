@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { adminNavItems, isNavActive } from "@/lib/admin-nav";
 import { cn } from "@/lib/utils";
 import {
@@ -38,7 +37,7 @@ export function AdminSidebarNav({
       )}
       aria-label="Main"
     >
-      {adminNavItems.map((item, index) => {
+      {adminNavItems.map((item) => {
         const Icon = item.icon;
         const active = isNavActive(pathname, item.href);
         const linkClass = cn(
@@ -59,25 +58,19 @@ export function AdminSidebarNav({
               )}
               aria-hidden
             />
-            <motion.span
-              className="min-w-0 overflow-hidden whitespace-nowrap"
-              initial={false}
-              animate={{
-                opacity: collapsed ? 0 : 1,
-              }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              style={{
-                width: collapsed ? 0 : "auto",
-                pointerEvents: collapsed ? "none" : "auto",
-              }}
+            <span
+              className={cn(
+                "min-w-0 overflow-hidden whitespace-nowrap transition-[opacity,width] duration-200 ease-out",
+                collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+              )}
+              aria-hidden={collapsed}
             >
               {item.title}
-            </motion.span>
+            </span>
             {active && (
-              <motion.span
-                layoutId="nav-pill"
+              <span
                 className="absolute inset-y-1 left-1 right-1 -z-10 rounded-md bg-sidebar-primary/15"
-                transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                aria-hidden
               />
             )}
           </>
@@ -86,6 +79,7 @@ export function AdminSidebarNav({
         const link = (
           <Link
             href={item.href}
+            prefetch
             className={cn(linkClass, "group")}
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
@@ -97,13 +91,7 @@ export function AdminSidebarNav({
 
         if (showTooltips && collapsed) {
           return (
-            <motion.div
-              key={item.href}
-              className="shrink-0"
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.03, duration: 0.2 }}
-            >
+            <div key={item.href} className="shrink-0">
               <Tooltip>
                 <TooltipTrigger
                   delay={280}
@@ -114,20 +102,14 @@ export function AdminSidebarNav({
                   {item.title}
                 </TooltipContent>
               </Tooltip>
-            </motion.div>
+            </div>
           );
         }
 
         return (
-          <motion.div
-            key={item.href}
-            className="shrink-0"
-            initial={{ opacity: 0, x: -6 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.03, duration: 0.2 }}
-          >
+          <div key={item.href} className="shrink-0">
             {link}
-          </motion.div>
+          </div>
         );
       })}
     </nav>

@@ -1,7 +1,8 @@
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
-import { prisma } from "@/lib/prisma";
-import { repairLegacyProjectStatusesIfNeeded } from "@/lib/repair-legacy-project-status";
 import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { cacheTags } from "@/lib/cache-tags";
 
 const projectDetailSelect = {
   id: true,
@@ -40,14 +41,17 @@ export type ProjectDetailPayload = Prisma.ProjectGetPayload<{
   select: typeof projectDetailSelect;
 }>;
 
-async function getProjectImpl(
-  id: string
-): Promise<ProjectDetailPayload | null> {
-  await repairLegacyProjectStatusesIfNeeded();
-  return prisma.project.findFirst({
-    where: { id, deletedAt: null },
-    select: projectDetailSelect,
-  });
-}
+const fetchProject = (id: string) =>
+  unstable_cache(
+    () =>
+      prisma.project.findFirst({
+        where: { id, deletedAt: null },
+        select: projectDetailSelect,
+      }),
+    ["project-detail", id],
+    { tags: [cacheTags.project(id)], revalidate: 60 }
+  )();
 
-export const getProject = cache(getProjectImpl);
+export const getProject = cache(
+  async (id: string): Promise<ProjectDetailPayload | null> => fetchProject(id)
+);

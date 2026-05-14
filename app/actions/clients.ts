@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getClientDetail } from "@/lib/queries/client-detail";
 import { listClientsDirectory } from "@/lib/queries/clients-directory";
+import { revalidateClient } from "@/lib/revalidate";
 import { clientCreateSchema, clientUpdateSchema } from "@/lib/validations";
 
 export async function listClients() {
@@ -17,8 +17,7 @@ export async function getClient(id: string) {
 export async function createClient(input: unknown) {
   const data = clientCreateSchema.parse(input);
   await prisma.client.create({ data });
-  revalidatePath("/clients");
-  revalidatePath("/dashboard");
+  revalidateClient();
 }
 
 export async function updateClient(input: unknown) {
@@ -27,9 +26,7 @@ export async function updateClient(input: unknown) {
     where: { id, deletedAt: null },
     data,
   });
-  revalidatePath("/clients");
-  revalidatePath(`/clients/${id}`);
-  revalidatePath("/dashboard");
+  revalidateClient(id);
 }
 
 export async function deleteClient(id: string) {
@@ -37,6 +34,5 @@ export async function deleteClient(id: string) {
     where: { id },
     data: { deletedAt: new Date() },
   });
-  revalidatePath("/clients");
-  revalidatePath("/dashboard");
+  revalidateClient(id);
 }
