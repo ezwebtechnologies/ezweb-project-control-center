@@ -18,18 +18,10 @@ const NEW_PROJECT_STATUS_LABELS = [
 ] as const;
 
 async function ensurePostgresProjectStatusHasNewLabels(): Promise<void> {
-  const sql = NEW_PROJECT_STATUS_LABELS.map(
-    (label) =>
+  for (const label of NEW_PROJECT_STATUS_LABELS) {
+    await prisma.$executeRawUnsafe(
       `ALTER TYPE "ProjectStatus" ADD VALUE IF NOT EXISTS '${label}';`
-  ).join("\n");
-  try {
-    await prisma.$executeRawUnsafe(sql);
-  } catch {
-    for (const label of NEW_PROJECT_STATUS_LABELS) {
-      await prisma.$executeRawUnsafe(
-        `ALTER TYPE "ProjectStatus" ADD VALUE IF NOT EXISTS '${label}';`
-      );
-    }
+    );
   }
 }
 

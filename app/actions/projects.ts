@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { listProjectsDirectory } from "@/lib/queries/projects-list";
 import { formatMoney } from "@/lib/format";
-import { repairLegacyProjectStatusesIfNeeded } from "@/lib/repair-legacy-project-status";
 import {
   type ProjectLifecycleStage,
   INITIAL_LIFECYCLE_STAGE,
@@ -64,18 +64,7 @@ function parseDate(v: string | null | undefined) {
 }
 
 export async function listProjects() {
-  await repairLegacyProjectStatusesIfNeeded();
-  return prisma.project.findMany({
-    where: { deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      deadline: true,
-      status: true,
-      client: { select: { id: true, companyName: true, name: true } },
-    },
-  });
+  return listProjectsDirectory();
 }
 
 export async function createProject(input: unknown) {

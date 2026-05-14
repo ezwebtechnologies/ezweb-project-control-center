@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -16,7 +17,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, formatRelative } from "@/lib/format";
 import { projectStatusLabels } from "@/lib/labels";
 import type { ProjectLifecycleStage } from "@/lib/project-lifecycle";
-import { DashboardOverviewCharts } from "@/components/dashboard/dashboard-overview-charts";
+
+const DashboardOverviewCharts = dynamic(
+  () =>
+    import("@/components/dashboard/dashboard-overview-charts").then(
+      (m) => m.DashboardOverviewCharts
+    ),
+  { ssr: true }
+);
 
 type FinanceChartRow = {
   label: string;

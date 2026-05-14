@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
 export type ExpenseListRow = {
@@ -9,7 +10,7 @@ export type ExpenseListRow = {
   createdAt: string;
 };
 
-export async function listExpenses(): Promise<ExpenseListRow[]> {
+async function listExpensesImpl(): Promise<ExpenseListRow[]> {
   const rows = await prisma.expense.findMany({
     where: { deletedAt: null },
     orderBy: { incurredAt: "desc" },
@@ -31,3 +32,5 @@ export async function listExpenses(): Promise<ExpenseListRow[]> {
     createdAt: r.createdAt.toISOString(),
   }));
 }
+
+export const listExpenses = cache(listExpensesImpl);

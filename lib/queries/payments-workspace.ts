@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { PaymentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { computeProjectBalanceSnapshot } from "@/lib/project-balance";
@@ -30,7 +31,7 @@ export type PaymentsWorkspaceProject = {
   payments: PaymentsWorkspacePaymentRow[];
 };
 
-export async function listPaymentsWorkspaceProjects(): Promise<PaymentsWorkspaceProject[]> {
+async function listPaymentsWorkspaceProjectsImpl(): Promise<PaymentsWorkspaceProject[]> {
   const rows = await prisma.project.findMany({
     where: { deletedAt: null },
     orderBy: { name: "asc" },
@@ -96,3 +97,7 @@ export async function listPaymentsWorkspaceProjects(): Promise<PaymentsWorkspace
     };
   });
 }
+
+export const listPaymentsWorkspaceProjects = cache(
+  listPaymentsWorkspaceProjectsImpl
+);

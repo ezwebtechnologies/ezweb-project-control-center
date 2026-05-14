@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 
 export default async function ClientsPage() {
   const clients = await listClients();
-  return <ClientsManager clients={JSON.parse(JSON.stringify(clients))} />;
+  return <ClientsManager clients={clients} />;
 }

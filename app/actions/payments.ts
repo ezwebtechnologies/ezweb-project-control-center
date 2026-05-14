@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { PaymentStatus } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { paymentCreateSchema, paymentUpdateSchema } from "@/lib/validations";
@@ -10,32 +9,6 @@ function parseDate(v: string | null | undefined) {
   if (!v || v.trim() === "") return null;
   const d = new Date(v);
   return Number.isNaN(d.getTime()) ? null : d;
-}
-
-export async function listPayments(filters?: {
-  clientId?: string;
-  status?: PaymentStatus;
-}) {
-  return prisma.payment.findMany({
-    where: {
-      deletedAt: null,
-      ...(filters?.clientId ? { clientId: filters.clientId } : {}),
-      ...(filters?.status ? { status: filters.status } : {}),
-    },
-    orderBy: { createdAt: "desc" },
-    include: {
-      client: { select: { id: true, companyName: true, name: true } },
-      project: { select: { id: true, name: true } },
-    },
-  });
-}
-
-export async function listClientsForPayments() {
-  return prisma.client.findMany({
-    where: { deletedAt: null },
-    select: { id: true, companyName: true, name: true },
-    orderBy: { companyName: "asc" },
-  });
 }
 
 export async function createPayment(input: unknown) {

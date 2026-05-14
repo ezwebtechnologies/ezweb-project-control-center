@@ -1,27 +1,71 @@
 "use client";
 
 import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { Plus } from "lucide-react";
 import type { ProjectLifecycleStage } from "@/lib/project-lifecycle";
 import { projectStatusLabels } from "@/lib/labels";
-import { RequirementsGatheringPanel } from "@/components/projects/requirements-gathering-panel";
-import { ProposalPricingPanel } from "@/components/projects/proposal-pricing-panel";
 import { BUILD_BUCKET_STAGES } from "@/lib/project-path";
-import {
-  ClientUatPanel,
-  type ClientUatPanelHandle,
-} from "@/components/projects/client-uat-panel";
-import { AdvancePaymentPanel } from "@/components/projects/advance-payment-panel";
-import {
-  ProjectBuildTasksPanel,
-  type BuildTaskRow,
-} from "@/components/projects/project-build-tasks-panel";
-import { RevisionsPlaybookPanel } from "@/components/projects/revisions-playbook-panel";
-import { ProjectDeliveredPanel } from "@/components/projects/project-delivered-panel";
+import type { ClientUatPanelHandle } from "@/components/projects/client-uat-panel";
+import type { BuildTaskRow } from "@/components/projects/project-build-tasks-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { PaymentStatus } from "@prisma/client";
+
+const RequirementsGatheringPanel = dynamic(
+  () =>
+    import("@/components/projects/requirements-gathering-panel").then(
+      (m) => m.RequirementsGatheringPanel
+    ),
+  { ssr: true }
+);
+
+const ProposalPricingPanel = dynamic(
+  () =>
+    import("@/components/projects/proposal-pricing-panel").then(
+      (m) => m.ProposalPricingPanel
+    ),
+  { ssr: true }
+);
+
+const AdvancePaymentPanel = dynamic(
+  () =>
+    import("@/components/projects/advance-payment-panel").then(
+      (m) => m.AdvancePaymentPanel
+    ),
+  { ssr: true }
+);
+
+const ProjectBuildTasksPanel = dynamic(
+  () =>
+    import("@/components/projects/project-build-tasks-panel").then(
+      (m) => m.ProjectBuildTasksPanel
+    ),
+  { ssr: true }
+);
+
+const ClientUatPanel = dynamic(
+  () =>
+    import("@/components/projects/client-uat-panel").then((m) => m.ClientUatPanel),
+  { ssr: true }
+);
+
+const RevisionsPlaybookPanel = dynamic(
+  () =>
+    import("@/components/projects/revisions-playbook-panel").then(
+      (m) => m.RevisionsPlaybookPanel
+    ),
+  { ssr: true }
+);
+
+const ProjectDeliveredPanel = dynamic(
+  () =>
+    import("@/components/projects/project-delivered-panel").then(
+      (m) => m.ProjectDeliveredPanel
+    ),
+  { ssr: true }
+);
 
 type StageCopy = {
   title: string;

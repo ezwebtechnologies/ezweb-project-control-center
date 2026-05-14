@@ -43,10 +43,10 @@ export default async function PaymentsPage({ searchParams }: PageProps) {
   return (
     <div className="mx-auto w-full max-w-6xl pb-12 pt-2">
       <PaymentsWorkspace
-        projects={JSON.parse(JSON.stringify(projects))}
+        projects={projects}
         activeProjectId={activeProjectId}
         activeView={activeView}
-        expenses={JSON.parse(JSON.stringify(expenses))}
+        expenses={expenses}
       />
     </div>
   );

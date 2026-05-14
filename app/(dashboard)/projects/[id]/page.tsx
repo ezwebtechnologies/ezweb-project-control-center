@@ -111,8 +111,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               <ProjectDetailActions
                 toolbar
                 className="shrink-0 pt-0.5"
-                project={JSON.parse(JSON.stringify(actionsPayload))}
-                clients={JSON.parse(JSON.stringify(clientOpts))}
+                project={actionsPayload}
+                clients={clientOpts}
               />
             </div>
 

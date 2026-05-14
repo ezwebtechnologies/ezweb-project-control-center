@@ -2,45 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { repairLegacyProjectStatusesIfNeeded } from "@/lib/repair-legacy-project-status";
+import { getClientDetail } from "@/lib/queries/client-detail";
+import { listClientsDirectory } from "@/lib/queries/clients-directory";
 import { clientCreateSchema, clientUpdateSchema } from "@/lib/validations";
 
 export async function listClients() {
-  return prisma.client.findMany({
-    where: { deletedAt: null },
-    orderBy: { companyName: "asc" },
-    select: {
-      id: true,
-      name: true,
-      companyName: true,
-      email: true,
-      phone: true,
-      address: true,
-      _count: {
-        select: {
-          projects: { where: { deletedAt: null } },
-        },
-      },
-    },
-  });
+  return listClientsDirectory();
 }
 
 export async function getClient(id: string) {
-  await repairLegacyProjectStatusesIfNeeded();
-  return prisma.client.findFirst({
-    where: { id, deletedAt: null },
-    include: {
-      projects: {
-        where: { deletedAt: null },
-        orderBy: { updatedAt: "desc" },
-      },
-      payments: {
-        where: { deletedAt: null },
-        orderBy: { createdAt: "desc" },
-        take: 10,
-      },
-    },
-  });
+  return getClientDetail(id);
 }
 
 export async function createClient(input: unknown) {

@@ -17,9 +17,11 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
 
 # debug
@@ -28,12 +30,24 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env (never commit secrets — template only)
 .env
-.env*.local
+.env.*
+!.env.example
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
+
+# turbo
+.turbo
+
+# IDE / editor
+.idea/
+*.swp
+*.swo
+
+# OS / tooling
+.cache/

@@ -35,7 +35,7 @@ export default async function ProjectsPage() {
   const payload = projects.map((p) => ({
     id: p.id,
     name: p.name,
-    deadline: p.deadline,
+    deadline: p.deadline ? p.deadline.toISOString() : null,
     status: p.status,
     client: p.client,
   }));
@@ -45,9 +45,6 @@ export default async function ProjectsPage() {
     name: c.name,
   }));
   return (
-    <ProjectsDirectory
-      projects={JSON.parse(JSON.stringify(payload))}
-      clients={JSON.parse(JSON.stringify(clientOpts))}
-    />
+    <ProjectsDirectory projects={payload} clients={clientOpts} />
   );
 }

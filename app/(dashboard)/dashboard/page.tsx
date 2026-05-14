@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
-  return <DashboardView data={JSON.parse(JSON.stringify(data))} />;
+  return <DashboardView data={data} />;
 }

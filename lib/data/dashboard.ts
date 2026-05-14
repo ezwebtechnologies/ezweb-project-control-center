@@ -121,7 +121,7 @@ async function getDashboardDataImpl() {
   const upcomingDeadlines = deadlineRows.map((r) => ({
     id: r.id,
     name: r.name,
-    deadline: r.deadline,
+    deadline: r.deadline ? new Date(r.deadline).toISOString() : null,
     status: coerceProjectStatus(r.status_text),
     client: { companyName: r.companyName },
   }));

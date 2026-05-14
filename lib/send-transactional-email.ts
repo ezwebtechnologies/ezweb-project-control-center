@@ -50,8 +50,14 @@ export async function sendTransactionalHtmlEmail(opts: {
   }
 
   const fromRaw = process.env.QUOTATION_EMAIL_FROM?.trim();
-  const from =
-    fromRaw && fromRaw.length > 0 ? fromRaw : "Quotations <onboarding@resend.dev>";
+  if (!fromRaw) {
+    return {
+      ok: false,
+      error:
+        "QUOTATION_EMAIL_FROM is required when using Resend. Set it in your environment (see .env.example).",
+    };
+  }
+  const from = fromRaw;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
