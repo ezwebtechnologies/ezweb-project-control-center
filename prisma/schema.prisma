@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Auth (future NextAuth / credentials) ---
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@index([email])
+}
+
+// --- Core business ---
+
+// ProjectStatus includes legacy enum labels so `prisma db push` stays compatible with older DBs
+// (see lib/repair-legacy-project-status.ts). Application code uses PROJECT_STAGE_ORDER / ProjectLifecycleStage only.
+enum ProjectStatus {
+  INITIAL_DISCUSSION
+  REQUIREMENTS_GATHERING
+  PROPOSAL_APPROVED
+  ADVANCE_PAYMENT_RECEIVED
+  UI_UX_DESIGN
+  IN_DEVELOPMENT
+  INTERNAL_TESTING
+  CLIENT_UAT
+  REVISIONS
+  PROJECT_DELIVERED
+  PROJECT_CLOSED
+  LEAD
+  DISCUSSIONS
+  QUOTE_FINALIZED
+  DEVELOPMENT
+  CLIENT_TESTING
+  DELIVERED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+  OVERDUE
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  OVERDUE
+  PARTIAL
+}
+
+model Client {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  companyName String
+  email       String
+  phone       String?
+  address     String?   @db.Text
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  projects Project[]
+  tasks    Task[]
+  payments Payment[]
+
+  @@index([deletedAt])
+  @@index([companyName])
+}
+
+model Project {
+  id          String          @id @default(uuid()) @db.Uuid
+  clientId    String          @db.Uuid
+  client      Client          @relation(fields: [clientId], references: [id])
+  name        String
+  description String?         @db.Text
+  notes       String?         @db.Text
+  status      ProjectStatus   @default(INITIAL_DISCUSSION)
+  priority    ProjectPriority @default(MEDIUM)
+  startDate   DateTime?
+  deadline    DateTime?
+  progress    Int             @default(0)
+  tags        String[]        @default([])
+  /// Scope pages + client confirmations for the requirements stage (JSON).
+  requirementsGatheringData Json?
+  /// Advance deposit recorded before build (INR).
+  advancePaymentAmount Decimal? @db.Decimal(14, 2)
+  /// Client UAT checklist + notes (JSON).
+  clientUatData Json?
+  /// Revisions sign-off, hypercare checklist (JSON).
+  postDeliveryData Json?
+  archivedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?
+
+  tasks    Task[]
+  payments Payment[]
+
+  @@index([clientId])
+  @@index([status, deletedAt])
+  @@index([archivedAt])
+  @@index([deletedAt, archivedAt])
+}
+
+model Label {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  color     String    @default("#818cf8")
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  tasks TaskLabel[]
+}
+
+model Task {
+  id          String       @id @default(uuid()) @db.Uuid
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  projectId   String?      @db.Uuid
+  project     Project?     @relation(fields: [projectId], references: [id])
+  clientId    String?      @db.Uuid
+  client      Client?      @relation(fields: [clientId], references: [id])
+  dueDate     DateTime?
+  notes       String?      @db.Text
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  labels      TaskLabel[]
+  attachments TaskAttachment[]
+
+  @@index([projectId, status, deletedAt])
+  @@index([clientId])
+  @@index([dueDate])
+}
+
+model TaskLabel {
+  taskId  String @db.Uuid
+  labelId String @db.Uuid
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+}
+
+model TaskAttachment {
+  id        String    @id @default(uuid()) @db.Uuid
+  taskId    String    @db.Uuid
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fileName  String
+  fileUrl   String    @default("")
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@index([taskId])
+}
+
+model Payment {
+  id            String        @id @default(uuid()) @db.Uuid
+  clientId      String        @db.Uuid
+  client        Client        @relation(fields: [clientId], references: [id])
+  projectId     String?       @db.Uuid
+  project       Project?      @relation(fields: [projectId], references: [id])
+  amount        Decimal       @db.Decimal(14, 2)
+  currency      String        @default("INR")
+  status        PaymentStatus @default(PENDING)
+  invoiceNumber String?
+  paymentDate   DateTime?
+  dueDate       DateTime?
+  notes         String?       @db.Text
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+
+  @@index([clientId, status])
+  @@index([paymentDate])
+  @@index([projectId, deletedAt])
+}
+
+model Expense {
+  id          String    @id @default(uuid()) @db.Uuid
+  amount      Decimal   @db.Decimal(14, 2)
+  currency    String    @default("INR")
+  description String    @db.VarChar(2000)
+  incurredAt  DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([incurredAt])
+  @@index([deletedAt])
+}
+
+model Employee {
+  id         String    @id @default(uuid()) @db.Uuid
+  name       String
+  email      String?
+  department String?
+  role       String?
+  notes      String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@index([deletedAt])
+}
