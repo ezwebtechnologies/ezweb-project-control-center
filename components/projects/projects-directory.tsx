@@ -16,7 +16,7 @@ import {
   progressForStage,
 } from "@/lib/project-lifecycle";
 import { projectPriorityLabels, projectStatusLabels } from "@/lib/labels";
-import { formatDate, todayStartDateTimeLocalValue } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,13 +100,13 @@ export function ProjectsDirectory({
 
   const getEmptyForm = useCallback(
     (): FormValues => ({
-      clientId: clients[0]?.id ?? "",
+      clientId: "",
       name: "",
       description: "",
-      startDate: todayStartDateTimeLocalValue(),
+      startDate: "",
       deadline: "",
     }),
-    [clients]
+    []
   );
 
   const clientSelectItems = useMemo(
@@ -288,19 +288,26 @@ export function ProjectsDirectory({
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto border-border/60 bg-popover/95 backdrop-blur-xl sm:max-w-lg">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden border-border/60 bg-popover/95 p-0 backdrop-blur-xl sm:max-w-lg">
+          <DialogHeader className="shrink-0 px-5 pt-5 pb-1">
             <DialogTitle>Create project</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Client</Label>
-              <Select
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <div className="grid flex-1 gap-4 overflow-y-auto px-5 py-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="proj-client">Client</Label>
+                <Select
                 value={clientId}
                 items={clientSelectItems}
                 onValueChange={(v) => setValue("clientId", v ?? "", { shouldValidate: true })}
               >
-                <SelectTrigger className="w-full min-w-0">
+                <SelectTrigger
+                  id="proj-client"
+                  className="h-9 w-full min-w-0 dark:bg-secondary"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="min-w-[var(--anchor-width)]">
@@ -314,36 +321,48 @@ export function ProjectsDirectory({
               <FieldError message={formState.errors.clientId?.message} />
             </div>
 
-            <div className="space-y-2">
+              <div className="grid gap-1.5">
               <Label htmlFor="proj-name">Name</Label>
-              <Input id="proj-name" placeholder="Project name" {...register("name")} />
+              <Input id="proj-name" className="h-9" {...register("name")} />
               <FieldError message={formState.errors.name?.message} />
             </div>
 
-            <div className="space-y-2">
+              <div className="grid gap-1.5">
               <Label htmlFor="proj-desc">Description</Label>
               <Textarea
                 id="proj-desc"
                 rows={3}
-                placeholder="Brief scope or notes"
+                className="min-h-[5.5rem] resize-y dark:bg-secondary dark:text-foreground"
                 {...register("description")}
               />
               <FieldError message={formState.errors.description?.message} />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="proj-start">Start date</Label>
-              <Input id="proj-start" type="datetime-local" {...register("startDate")} />
-              <FieldError message={formState.errors.startDate?.message} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="proj-start">Start date</Label>
+                  <Input
+                    id="proj-start"
+                    type="datetime-local"
+                    className="h-9"
+                    {...register("startDate")}
+                  />
+                  <FieldError message={formState.errors.startDate?.message} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="proj-deadline">Deadline</Label>
+                  <Input
+                    id="proj-deadline"
+                    type="datetime-local"
+                    className="h-9"
+                    {...register("deadline")}
+                  />
+                  <FieldError message={formState.errors.deadline?.message} />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="proj-deadline">Deadline</Label>
-              <Input id="proj-deadline" type="datetime-local" {...register("deadline")} />
-              <FieldError message={formState.errors.deadline?.message} />
-            </div>
-
-            <DialogFooter>
+            <DialogFooter className="mx-0 mb-0 mt-0 shrink-0 items-center border-t px-5 py-4">
               <Button type="submit" disabled={pending}>
                 Create project
               </Button>

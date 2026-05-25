@@ -2,6 +2,12 @@ import nodemailer from "nodemailer";
 
 export type SendEmailResult = { ok: true } | { ok: false; error: string };
 
+export type EmailAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+};
+
 /**
  * Sends HTML mail using Gmail SMTP when `GMAIL_USER` + `GMAIL_APP_PASSWORD` are set
  * (use a Google Account [App Password](https://support.google.com/accounts/answer/185833)).
@@ -11,7 +17,13 @@ export async function sendTransactionalHtmlEmail(opts: {
   to: string;
   subject: string;
   html: string;
+  attachments?: EmailAttachment[];
 }): Promise<SendEmailResult> {
+  const attachments = opts.attachments?.map((file) => ({
+    filename: file.filename,
+    content: file.content,
+    contentType: file.contentType ?? "application/octet-stream",
+  }));
   const gmailUser = process.env.GMAIL_USER?.trim();
   const gmailAppPassword = process.env.GMAIL_APP_PASSWORD?.trim();
 
@@ -32,6 +44,7 @@ export async function sendTransactionalHtmlEmail(opts: {
         to: opts.to,
         subject: opts.subject,
         html: opts.html,
+        attachments,
       });
       return { ok: true };
     } catch (e) {
@@ -71,6 +84,10 @@ export async function sendTransactionalHtmlEmail(opts: {
       to: [opts.to],
       subject: opts.subject,
       html: opts.html,
+      attachments: attachments?.map((file) => ({
+        filename: file.filename,
+        content: file.content.toString("base64"),
+      })),
     }),
   });
 

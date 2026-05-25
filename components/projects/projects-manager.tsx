@@ -17,7 +17,7 @@ import {
 import { projectFormInputSchema } from "@/lib/validations";
 import { coerceProjectStatus, computeProjectPriority, progressForStage } from "@/lib/project-lifecycle";
 import { projectPriorityLabels, projectStatusLabels } from "@/lib/labels";
-import { formatDate, todayStartDateTimeLocalValue } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,14 +102,14 @@ export function ProjectsManager({
 
   const getEmptyForm = useCallback(
     (): FormValues => ({
-      clientId: clients[0]?.id ?? "",
+      clientId: "",
       name: "",
       description: "",
-      startDate: todayStartDateTimeLocalValue(),
+      startDate: "",
       deadline: "",
       tagsInput: "",
     }),
-    [clients]
+    []
   );
 
   const clientSelectItems = useMemo(

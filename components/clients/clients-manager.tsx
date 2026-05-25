@@ -160,7 +160,6 @@ export function ClientsManager({ clients }: { clients: ClientRow[] }) {
               <Label htmlFor="companyName">Business name</Label>
               <Input
                 id="companyName"
-                placeholder="Acme Inc."
                 autoComplete="organization"
                 {...register("companyName")}
               />
@@ -170,7 +169,6 @@ export function ClientsManager({ clients }: { clients: ClientRow[] }) {
               <Label htmlFor="name">Primary contact name</Label>
               <Input
                 id="name"
-                placeholder="Jane Doe"
                 autoComplete="name"
                 {...register("name")}
               />

@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -127,14 +126,16 @@ export function AdminHeader({ onOpenMobileNav, className }: AdminHeaderProps) {
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
-          <Input
-            type="search"
+          <input
+            type="text"
+            role="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={searchPlaceholder}
-            className="h-9 rounded-full border-border/60 bg-muted/30 pl-9 text-sm text-foreground caret-foreground shadow-inner transition-[background-color,box-shadow] placeholder:text-muted-foreground hover:bg-muted/45 focus-visible:bg-muted/50 focus-visible:ring-sidebar-primary/30"
+            className="dashboard-search-input h-9 w-full min-w-0 rounded-full border border-border pl-9 text-sm shadow-inner outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             aria-label={searchPlaceholder}
             autoComplete="off"
+            spellCheck={false}
           />
         </div>
       </div>

@@ -88,6 +88,39 @@
   body {
     @apply min-h-dvh bg-background text-foreground antialiased;
   }
+  .dark input,
+  .dark textarea,
+  .dark select {
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  .dashboard-search-input {
+    background-color: oklch(0.22 0.014 260);
+    color: oklch(0.985 0 0);
+    caret-color: oklch(0.985 0 0);
+    -webkit-text-fill-color: oklch(0.985 0 0);
+  }
+  .dashboard-search-input::placeholder {
+    color: oklch(0.65 0.02 260);
+    opacity: 1;
+  }
+  .dashboard-search-input:focus {
+    background-color: oklch(0.24 0.02 260);
+    color: oklch(0.985 0 0);
+    -webkit-text-fill-color: oklch(0.985 0 0);
+  }
+
+  .dark input[type="datetime-local"] {
+    background-color: oklch(0.22 0.014 260);
+    color: oklch(0.985 0 0);
+    color-scheme: dark;
+  }
+  .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    opacity: 0.75;
+    filter: invert(1);
+  }
 }
 
 @layer utilities {

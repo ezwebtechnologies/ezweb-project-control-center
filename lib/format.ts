@@ -17,6 +17,26 @@ export function formatMoney(amount: number | string, currency: string = APP_CURR
   }).format(Number.isFinite(n) ? n : 0);
 }
 
+/** WinAnsi-safe amounts for PDF standard fonts (Helvetica cannot render ₹). */
+export function formatMoneyPdf(amount: number | string, currency: string = APP_CURRENCY) {
+  const n = typeof amount === "string" ? Number(amount) : amount;
+  const value = Number.isFinite(n) ? n : 0;
+  const formatted = new Intl.NumberFormat(localeForCurrency(currency), {
+    maximumFractionDigits: 0,
+  }).format(value);
+  if (currency === "INR") return `INR ${formatted}`;
+  if (currency === "USD") return `USD ${formatted}`;
+  return `${currency} ${formatted}`;
+}
+
+/** Strip/replace characters that PDF standard fonts cannot encode. */
+export function pdfSafeText(text: string): string {
+  return text
+    .replace(/\u20b9/g, "INR ")
+    .replace(/[\u2013\u2014\u2212]/g, "-")
+    .replace(/[^\u0020-\u007e\u00a0-\u00ff]/g, "?");
+}
+
 export function formatDate(d: Date | string | null | undefined) {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;

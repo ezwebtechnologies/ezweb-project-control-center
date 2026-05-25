@@ -121,7 +121,6 @@ export function ClientDetailActions({
               <Label htmlFor="edit-companyName">Business name</Label>
               <Input
                 id="edit-companyName"
-                placeholder="Acme Inc."
                 autoComplete="organization"
                 {...register("companyName")}
               />
@@ -131,7 +130,6 @@ export function ClientDetailActions({
               <Label htmlFor="edit-name">Primary contact name</Label>
               <Input
                 id="edit-name"
-                placeholder="Jane Doe"
                 autoComplete="name"
                 {...register("name")}
               />

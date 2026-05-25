@@ -33,6 +33,12 @@ import {
   postDeliveryHypercareSaveSchema,
 } from "@/lib/validations";
 import { buildQuotationEmailHtml } from "@/lib/quotation-email-html";
+import { buildQuotationPdfBuffer } from "@/lib/quotation-pdf";
+import {
+  buildRequirementsSections,
+  quotationEmailSubject,
+  quotationPdfFilename,
+} from "@/lib/quotation-document";
 import { sendTransactionalHtmlEmail } from "@/lib/send-transactional-email";
 import { isAllowedLifecycleStage, BUILD_BUCKET_STAGES } from "@/lib/project-path";
 import { seedBuildTasksFromRequirements } from "@/lib/seed-build-tasks-from-requirements";
@@ -727,11 +733,12 @@ export async function sendQuotationEmail(input: unknown): Promise<SendQuotationR
   const project = await prisma.project.findFirst({
     where: { id: projectId, deletedAt: null },
     select: {
-      name: true,
       archivedAt: true,
       status: true,
       requirementsGatheringData: true,
-      client: { select: { companyName: true } },
+      client: {
+        select: { name: true, companyName: true, phone: true, email: true },
+      },
     },
   });
 
@@ -758,18 +765,37 @@ export async function sendQuotationEmail(input: unknown): Promise<SendQuotationR
   const discountApplied = quotationDiscountApplied(subtotal, pricing);
   const total = computeQuotationGrandTotal(scope);
 
-  const html = buildQuotationEmailHtml({
-    projectName: project.name,
-    clientCompany: project.client.companyName,
+  const document = {
+    customer: {
+      name: project.client.name,
+      companyName: project.client.companyName,
+      phone: project.client.phone,
+      email: project.client.email,
+    },
     lines,
     subtotal,
     discountApplied,
     total,
+    requirementsSections: buildRequirementsSections(base),
+    quotedAt: new Date(),
+  };
+
+  const html = buildQuotationEmailHtml(document);
+  const pdf = await buildQuotationPdfBuffer(document);
+  const subject = quotationEmailSubject(project.client.companyName);
+
+  return sendTransactionalHtmlEmail({
+    to,
+    subject,
+    html,
+    attachments: [
+      {
+        filename: quotationPdfFilename(project.client.companyName),
+        content: pdf,
+        contentType: "application/pdf",
+      },
+    ],
   });
-
-  const subject = `Quotation — ${project.name} (${project.client.companyName})`;
-
-  return sendTransactionalHtmlEmail({ to, subject, html });
 }
 
 export async function deleteProject(id: string) {

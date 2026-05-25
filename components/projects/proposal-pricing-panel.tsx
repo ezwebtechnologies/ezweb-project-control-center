@@ -175,7 +175,7 @@ export function ProposalPricingPanel({
         pricing: merged,
       });
       if (result.ok) {
-        setSendFeedback({ ok: true, text: "Quotation email sent." });
+        setSendFeedback({ ok: true, text: "Quotation email sent with PDF attached." });
       } else {
         setSendFeedback({ ok: false, text: result.error });
       }
