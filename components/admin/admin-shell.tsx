@@ -16,11 +16,18 @@ import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebarNav } from "@/components/admin/admin-sidebar-nav";
 import { DashboardSearchProvider } from "@/components/providers/dashboard-search-provider";
 import { siteConfig } from "@/lib/site";
+import type { SessionUser } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "ezweb-sidebar-collapsed";
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({
+  user,
+  children,
+}: {
+  user: SessionUser;
+  children: React.ReactNode;
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -157,7 +164,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             collapsed ? "lg:pl-[76px]" : "lg:pl-[268px]"
           )}
         >
-          <AdminHeader onOpenMobileNav={() => setMobileOpen(true)} />
+          <AdminHeader user={user} onOpenMobileNav={() => setMobileOpen(true)} />
           <Separator className="opacity-50" />
           <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
             <div

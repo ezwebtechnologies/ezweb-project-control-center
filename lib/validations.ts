@@ -163,3 +163,47 @@ export const postDeliveryHypercareSaveSchema = z.object({
 });
 
 export type PostDeliveryHypercareSaveInput = z.infer<typeof postDeliveryHypercareSaveSchema>;
+
+export const loginSchema = z.object({
+  email: z.string().email().max(320),
+  password: z.string().min(1).max(200),
+});
+
+export const employeeCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  email: z.string().email().max(320),
+  department: z.string().max(120).optional(),
+  role: z.string().max(120).optional(),
+  notes: z.string().max(2000).optional(),
+});
+
+export const forcedPasswordChangeSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(200),
+    confirmPassword: z.string().min(1).max(200),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export const voluntaryPasswordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(200),
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(200),
+    confirmPassword: z.string().min(1).max(200),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+export const adminResetEmployeePasswordSchema = z.object({
+  employeeId: z.string().uuid(),
+});

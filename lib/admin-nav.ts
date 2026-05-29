@@ -4,7 +4,6 @@ import {
   CreditCard,
   FolderKanban,
   LayoutDashboard,
-  Settings,
   Users,
 } from "lucide-react";
 
@@ -20,7 +19,6 @@ export const adminNavItems: AdminNavItem[] = [
   { title: "Projects", href: "/projects", icon: FolderKanban },
   { title: "Payments", href: "/payments", icon: CreditCard },
   { title: "Employees", href: "/employees", icon: Users },
-  { title: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function isNavActive(pathname: string, href: string) {

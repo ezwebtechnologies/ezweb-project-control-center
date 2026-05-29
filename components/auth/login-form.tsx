@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import { login, type LoginState } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -15,7 +18,12 @@ import {
 } from "@/components/ui/card";
 
 export function LoginForm() {
-  const [message, setMessage] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const [state, formAction, pending] = useActionState<LoginState, FormData>(
+    login,
+    null
+  );
 
   return (
     <motion.div
@@ -29,62 +37,62 @@ export function LoginForm() {
             Welcome back
           </CardTitle>
           <CardDescription>
-            Authentication is scaffolded for a future release (NextAuth,
-            credentials, or SSO). UI only for now.
+            Sign in with your work email and password to access the control
+            center.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5 pt-2">
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setMessage(
-                "Sign-in will connect to your auth provider once configured."
-              );
-            }}
-          >
+          <form action={formAction} className="space-y-4">
+            <input type="hidden" name="callbackUrl" value={callbackUrl} />
             <div className="space-y-2">
-              <Label htmlFor="email">Work email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@company.com"
+                required
+                disabled={pending}
                 className="h-11 bg-background/50"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
-                placeholder="••••••••"
+                required
+                disabled={pending}
                 className="h-11 bg-background/50"
               />
             </div>
-            <Button type="submit" className="h-11 w-full font-medium">
-              Continue
+            {state?.error ? (
+              <p
+                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-center text-xs text-destructive"
+                role="alert"
+              >
+                {state.error}
+              </p>
+            ) : null}
+            <Button
+              type="submit"
+              disabled={pending}
+              className="h-11 w-full font-medium"
+            >
+              {pending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  Signing in…
+                </>
+              ) : (
+                "Sign in"
+              )}
             </Button>
           </form>
-          {message ? (
-            <p className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-center text-xs text-muted-foreground">
-              {message}
-            </p>
-          ) : null}
           <p className="text-center text-xs text-muted-foreground">
             By continuing you agree to internal workspace policies.
           </p>
-          <div className="text-center text-sm text-muted-foreground">
-            <Link
-              href="/dashboard"
-              className="font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              Skip to dashboard
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </motion.div>

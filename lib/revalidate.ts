@@ -38,3 +38,8 @@ export function revalidateExpense() {
   revalidatePath("/payments");
   revalidatePath("/dashboard");
 }
+
+export function revalidateEmployees() {
+  revalidateTag(cacheTags.employeesList);
+  revalidatePath("/employees");
+}

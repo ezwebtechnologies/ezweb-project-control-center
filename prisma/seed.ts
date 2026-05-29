@@ -4,6 +4,7 @@ import {
   ProjectPriority,
   ProjectStatus,
 } from "@prisma/client";
+import { hashPassword } from "../lib/auth/password";
 
 const prisma = new PrismaClient();
 
@@ -18,11 +19,13 @@ async function main() {
   await prisma.employee.deleteMany();
   await prisma.user.deleteMany();
 
+  const adminPassword =
+    process.env.SEED_ADMIN_PASSWORD?.trim() || "admin123";
   await prisma.user.create({
     data: {
       email: "admin@example.com",
       name: "Admin",
-      passwordHash: null,
+      passwordHash: await hashPassword(adminPassword),
     },
   });
 

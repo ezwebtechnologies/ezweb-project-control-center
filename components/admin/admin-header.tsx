@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Fragment, useMemo } from "react";
 import { Bell, Menu, Search } from "lucide-react";
+import { AdminAccountMenu, accountInitials } from "@/components/admin/admin-account-menu";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { SessionUser } from "@/lib/auth/session";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,6 +26,7 @@ import { useDashboardSearch } from "@/components/providers/dashboard-search-prov
 import { cn } from "@/lib/utils";
 
 type AdminHeaderProps = {
+  user: SessionUser;
   onOpenMobileNav: () => void;
   className?: string;
 };
@@ -67,9 +67,8 @@ function dashboardSearchPlaceholder(pathname: string) {
   return "Search projects, clients, or expenses…";
 }
 
-export function AdminHeader({ onOpenMobileNav, className }: AdminHeaderProps) {
+export function AdminHeader({ user, onOpenMobileNav, className }: AdminHeaderProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { query, setQuery } = useDashboardSearch();
   const crumbs = getAdminBreadcrumbs(pathname);
   const searchPlaceholder = useMemo(
@@ -162,25 +161,14 @@ export function AdminHeader({ onOpenMobileNav, className }: AdminHeaderProps) {
               >
                 <Avatar className="size-7 border border-border/50">
                   <AvatarFallback className="bg-sidebar-primary/20 text-xs font-medium text-sidebar-primary">
-                    AC
+                    {accountInitials(user)}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             }
           />
-          <DropdownMenuContent align="end" className="min-w-48">
-            <DropdownMenuLabel className="font-normal">
-              <span className="text-xs text-muted-foreground">Account</span>
-            </DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => router.push("/login")}>
-              Sign in
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Team</DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">Log out</DropdownMenuItem>
+          <DropdownMenuContent align="end" className="min-w-52">
+            <AdminAccountMenu user={user} />
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

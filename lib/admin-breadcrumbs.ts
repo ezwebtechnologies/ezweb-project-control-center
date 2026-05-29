@@ -19,6 +19,13 @@ export function getAdminBreadcrumbs(pathname: string): BreadcrumbEntry[] {
     return trail;
   }
 
+  if (pathname === "/profile") {
+    return [
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Profile", href: "/profile", current: true },
+    ];
+  }
+
   const clientDetail = /^\/clients\/([^/]+)$/.exec(pathname);
   if (clientDetail) {
     return [
