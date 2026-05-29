@@ -21,11 +21,20 @@ export const projectCreateSchema = z.object({
   tags: z.array(z.string().max(64)).max(20).default([]),
 });
 
-export const projectCreateStrictSchema = projectCreateSchema.extend({
-  deadline: z.string().min(1, "Deadline is required").max(40),
+export const projectAssigneesUpdateSchema = z.object({
+  projectId: z.string().uuid(),
+  assigneeIds: z.array(z.string().uuid()).max(50),
 });
 
-export const projectCreateFormSchema = projectCreateStrictSchema.omit({ tags: true });
+export const projectCreateStrictSchema = projectCreateSchema.extend({
+  deadline: z.string().min(1, "Deadline is required").max(40),
+  assigneeIds: z.array(z.string().uuid()).max(50).default([]),
+});
+
+export const projectCreateFormSchema = projectCreateStrictSchema.omit({
+  tags: true,
+  assigneeIds: true,
+});
 
 export const projectUpdateFormSchema = projectCreateFormSchema.extend({
   id: z.string().uuid(),
@@ -169,12 +178,26 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(200),
 });
 
+export const accountRoleSchema = z.enum(["ADMIN", "EMPLOYEE"]);
+
 export const employeeCreateSchema = z.object({
   name: z.string().min(1).max(200),
   email: z.string().email().max(320),
   department: z.string().max(120).optional(),
   role: z.string().max(120).optional(),
   notes: z.string().max(2000).optional(),
+  accountRole: accountRoleSchema,
+  canViewPayments: z.boolean(),
+  canViewClients: z.boolean(),
+  canViewAllProjects: z.boolean(),
+});
+
+export const employeeAccessUpdateSchema = z.object({
+  employeeId: z.string().uuid(),
+  accountRole: accountRoleSchema,
+  canViewPayments: z.boolean(),
+  canViewClients: z.boolean(),
+  canViewAllProjects: z.boolean(),
 });
 
 export const forcedPasswordChangeSchema = z

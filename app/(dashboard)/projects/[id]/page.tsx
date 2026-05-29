@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProject } from "@/lib/queries/project-detail";
+import { isEmployeeAssignedToProject } from "@/lib/queries/projects-list";
+import { requireUser } from "@/lib/auth/access";
+import { redirect } from "next/navigation";
 import { parseRequirementsGatheringData } from "@/lib/requirements-gathering";
 import {
   computeQuotationGrandTotal,
@@ -33,11 +36,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { id } = await params;
 
+  const user = await requireUser();
+
   // Single fetch — every downstream consumer (lifecycle path, stage panel,
   // actions) reads from this one payload. React.cache + Next data cache
   // guarantees no duplicate DB round trips even if children call getProject().
   const project = await timed(`page.getProject ${id}`, () => getProject(id));
   if (!project) notFound();
+
+  // Employees without "view all projects" may only open assigned projects.
+  if (!user.permissions.viewAllProjects) {
+    const assigned = user.employeeId
+      ? await isEmployeeAssignedToProject(user.employeeId, id)
+      : false;
+    if (!assigned) redirect("/projects");
+  }
 
   const lifecycleStage = coerceProjectStatus(String(project.status));
   const archived = Boolean(project.archivedAt);

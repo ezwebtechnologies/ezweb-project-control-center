@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { adminNavItems, isNavActive } from "@/lib/admin-nav";
+import { isNavActive, visibleNavItems } from "@/lib/admin-nav";
+import type { AccessContext } from "@/lib/auth/permissions";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -14,6 +15,7 @@ type AdminSidebarNavProps = {
   collapsed: boolean;
   showTooltips: boolean;
   onNavigate?: () => void;
+  access: AccessContext;
   /** Mobile drawer: compact stacked list */
   variant?: "default" | "sheet";
 };
@@ -22,12 +24,13 @@ export function AdminSidebarNav({
   collapsed,
   showTooltips,
   onNavigate,
+  access,
   variant = "default",
 }: AdminSidebarNavProps) {
   const pathname = usePathname();
   const isSheet = variant === "sheet";
 
-  const list = adminNavItems.map((item) => {
+  const list = visibleNavItems(access).map((item) => {
     const Icon = item.icon;
     const active = isNavActive(pathname, item.href);
 

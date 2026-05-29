@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo } from "react";
 import { Bell, Menu, Search } from "lucide-react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { AdminAccountMenu, accountInitials } from "@/components/admin/admin-account-menu";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import type { SessionUser } from "@/lib/auth/session";
+import type { AccountUser } from "@/components/admin/admin-account-menu";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,7 +27,7 @@ import { useDashboardSearch } from "@/components/providers/dashboard-search-prov
 import { cn } from "@/lib/utils";
 
 type AdminHeaderProps = {
-  user: SessionUser;
+  user: AccountUser;
   onOpenMobileNav: () => void;
   className?: string;
 };
@@ -93,6 +94,8 @@ export function AdminHeader({ user, onOpenMobileNav, className }: AdminHeaderPro
       >
         <Menu className="size-[18px]" />
       </Button>
+
+      <BrandLogo size="xs" className="hidden shrink-0 sm:flex lg:hidden" />
 
       <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-center md:gap-5">
         <MobileBreadcrumbTrail crumbs={crumbs} />

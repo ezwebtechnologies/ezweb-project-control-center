@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import {
   changePasswordForced,
   type PasswordActionState,
@@ -26,6 +27,7 @@ export function ChangePasswordForm() {
   return (
     <Card className="border-border/60 bg-card/70 shadow-2xl shadow-black/20 backdrop-blur-xl">
       <CardHeader className="space-y-1 pb-2">
+        <BrandLogo size="md" className="mb-1" />
         <CardTitle className="text-2xl font-semibold tracking-tight">
           Set your password
         </CardTitle>

@@ -1,21 +1,59 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth/access";
 import { getDefaultEmployeePassword } from "@/lib/auth/default-password";
 import { hashPassword } from "@/lib/auth/password";
 import { listEmployeesDirectory } from "@/lib/queries/employees-directory";
 import { revalidateEmployees } from "@/lib/revalidate";
-import { employeeCreateSchema } from "@/lib/validations";
+import {
+  employeeAccessUpdateSchema,
+  employeeCreateSchema,
+} from "@/lib/validations";
 
 function emptyToNull(value: string | null | undefined) {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
 }
 
+type AccessFlags = {
+  role: "ADMIN" | "EMPLOYEE";
+  canViewPayments: boolean;
+  canViewClients: boolean;
+  canViewAllProjects: boolean;
+};
+
+// Admins implicitly have full access; persist the flags as true for clarity.
+function normalizeAccess(input: {
+  accountRole: "ADMIN" | "EMPLOYEE";
+  canViewPayments: boolean;
+  canViewClients: boolean;
+  canViewAllProjects: boolean;
+}): AccessFlags {
+  if (input.accountRole === "ADMIN") {
+    return {
+      role: "ADMIN",
+      canViewPayments: true,
+      canViewClients: true,
+      canViewAllProjects: true,
+    };
+  }
+  return {
+    role: "EMPLOYEE",
+    canViewPayments: input.canViewPayments,
+    canViewClients: input.canViewClients,
+    canViewAllProjects: input.canViewAllProjects,
+  };
+}
+
 export type CreateEmployeeResult = { ok: true } | { ok: false; error: string };
 
 export type EnableEmployeeLoginResult =
   | { ok: true; defaultPassword: string }
+  | { ok: false; error: string };
+
+export type UpdateEmployeeAccessResult =
+  | { ok: true }
   | { ok: false; error: string };
 
 export async function listEmployees() {
@@ -25,6 +63,8 @@ export async function listEmployees() {
 export async function createEmployee(
   input: unknown
 ): Promise<CreateEmployeeResult> {
+  await requireAdmin();
+
   const parsed = employeeCreateSchema.safeParse(input);
   if (!parsed.success) {
     const msg =
@@ -37,6 +77,7 @@ export async function createEmployee(
   const data = parsed.data;
   const email = data.email.toLowerCase().trim();
   const name = data.name.trim();
+  const access = normalizeAccess(data);
 
   const existingUser = await prisma.user.findFirst({
     where: { email, deletedAt: null },
@@ -59,6 +100,10 @@ export async function createEmployee(
           name,
           passwordHash,
           mustChangePassword: true,
+          role: access.role,
+          canViewPayments: access.canViewPayments,
+          canViewClients: access.canViewClients,
+          canViewAllProjects: access.canViewAllProjects,
         },
       });
 
@@ -81,9 +126,44 @@ export async function createEmployee(
   return { ok: true };
 }
 
+export async function updateEmployeeAccess(
+  input: unknown
+): Promise<UpdateEmployeeAccessResult> {
+  await requireAdmin();
+
+  const parsed = employeeAccessUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Invalid access settings." };
+  }
+
+  const employee = await prisma.employee.findFirst({
+    where: { id: parsed.data.employeeId, deletedAt: null },
+    select: { userId: true },
+  });
+  if (!employee?.userId) {
+    return { ok: false, error: "This employee has no login account." };
+  }
+
+  const access = normalizeAccess(parsed.data);
+  await prisma.user.update({
+    where: { id: employee.userId },
+    data: {
+      role: access.role,
+      canViewPayments: access.canViewPayments,
+      canViewClients: access.canViewClients,
+      canViewAllProjects: access.canViewAllProjects,
+    },
+  });
+
+  revalidateEmployees();
+  return { ok: true };
+}
+
 export async function enableEmployeeLogin(
   employeeId: string
 ): Promise<EnableEmployeeLoginResult> {
+  await requireAdmin();
+
   const employee = await prisma.employee.findFirst({
     where: { id: employeeId, deletedAt: null },
     select: { id: true, name: true, email: true, userId: true },
@@ -126,6 +206,10 @@ export async function enableEmployeeLogin(
           name: employee.name.trim(),
           passwordHash,
           mustChangePassword: true,
+          role: "EMPLOYEE",
+          canViewPayments: false,
+          canViewClients: false,
+          canViewAllProjects: false,
         },
       });
       await tx.employee.update({
@@ -142,6 +226,8 @@ export async function enableEmployeeLogin(
 }
 
 export async function deleteEmployee(id: string) {
+  await requireAdmin();
+
   const employee = await prisma.employee.findFirst({
     where: { id, deletedAt: null },
     select: { userId: true },

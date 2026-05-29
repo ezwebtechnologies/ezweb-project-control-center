@@ -27,39 +27,42 @@ function getSecret(): Uint8Array | null {
 type SessionCheck = {
   authenticated: boolean;
   mustChangePassword: boolean;
+  isAdmin: boolean;
 };
+
+const ADMIN_ONLY_PREFIXES = ["/employees"];
+
+function isAdminOnlyPath(pathname: string): boolean {
+  return ADMIN_ONLY_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
 
 async function getSessionCheck(request: NextRequest): Promise<SessionCheck> {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const secret = getSecret();
   if (!token || !secret) {
-    return { authenticated: false, mustChangePassword: false };
+    return { authenticated: false, mustChangePassword: false, isAdmin: false };
   }
   try {
     const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
     return {
       authenticated: true,
       mustChangePassword: payload.mustChangePassword === true,
+      isAdmin: payload.role === "ADMIN",
     };
   } catch {
-    return { authenticated: false, mustChangePassword: false };
+    return { authenticated: false, mustChangePassword: false, isAdmin: false };
   }
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const { authenticated, mustChangePassword } = await getSessionCheck(request);
+  const { authenticated, mustChangePassword, isAdmin } =
+    await getSessionCheck(request);
 
   if (pathname === "/") {
-    if (!authenticated) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-    return NextResponse.redirect(
-      new URL(
-        mustChangePassword ? "/change-password" : "/dashboard",
-        request.url
-      )
-    );
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (pathname === "/change-password") {
@@ -75,14 +78,6 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === "/login") {
-    if (authenticated) {
-      return NextResponse.redirect(
-        new URL(
-          mustChangePassword ? "/change-password" : "/dashboard",
-          request.url
-        )
-      );
-    }
     return NextResponse.next();
   }
 
@@ -98,6 +93,10 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (authenticated && !isAdmin && isAdminOnlyPath(pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

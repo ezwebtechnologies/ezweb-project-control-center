@@ -6,11 +6,14 @@ import {
   SESSION_MAX_AGE_SEC,
 } from "@/lib/auth/constants";
 
+export type SessionRole = "ADMIN" | "EMPLOYEE";
+
 export type SessionUser = {
   userId: string;
   email: string;
   name: string;
   mustChangePassword: boolean;
+  role: SessionRole;
 };
 
 export async function createSessionToken(user: SessionUser): Promise<string> {
@@ -19,6 +22,7 @@ export async function createSessionToken(user: SessionUser): Promise<string> {
     email: user.email,
     name: user.name,
     mustChangePassword: user.mustChangePassword,
+    role: user.role,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -37,6 +41,7 @@ export async function verifySessionToken(
     const email = payload.email;
     const name = payload.name;
     const mustChangePassword = payload.mustChangePassword === true;
+    const role: SessionRole = payload.role === "ADMIN" ? "ADMIN" : "EMPLOYEE";
     if (
       typeof userId !== "string" ||
       typeof email !== "string" ||
@@ -44,7 +49,7 @@ export async function verifySessionToken(
     ) {
       return null;
     }
-    return { userId, email, name, mustChangePassword };
+    return { userId, email, name, mustChangePassword, role };
   } catch {
     return null;
   }

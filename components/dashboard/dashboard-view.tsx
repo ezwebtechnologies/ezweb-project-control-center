@@ -5,9 +5,9 @@ import {
   CalendarClock,
   CreditCard,
   FolderKanban,
-  Sparkles,
   TrendingUp,
 } from "lucide-react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMoney, formatRelative } from "@/lib/format";
@@ -51,18 +51,29 @@ const METRICS: {
   { key: "profitNet", title: "Profit", icon: TrendingUp, money: true },
 ];
 
-export function DashboardView({ data }: { data: DashboardPayload }) {
+export function DashboardView({
+  data,
+  showFinancials = true,
+}: {
+  data: DashboardPayload;
+  showFinancials?: boolean;
+}) {
+  const metrics = showFinancials
+    ? METRICS
+    : METRICS.filter((m) => !m.money);
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <Sparkles className="size-3.5 text-sidebar-primary" aria-hidden />
-            Overview
+        <div className="flex items-start gap-4">
+          <BrandLogo size="md" className="hidden sm:flex" />
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Overview
+            </p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
+              Control center
+            </h1>
           </div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Control center
-          </h1>
         </div>
         <Link
           href="/projects"
@@ -79,7 +90,7 @@ export function DashboardView({ data }: { data: DashboardPayload }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {METRICS.map((m) => {
+        {metrics.map((m) => {
           const raw = data[m.key] as number;
           const value = m.money ? formatMoney(raw) : raw;
           const Icon = m.icon;
@@ -141,6 +152,7 @@ export function DashboardView({ data }: { data: DashboardPayload }) {
       <LazyDashboardCharts
         finance={data.financeChart}
         pipeline={data.pipelineByStatus}
+        showFinancials={showFinancials}
       />
     </div>
   );

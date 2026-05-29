@@ -1,7 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { listProjectsDirectory } from "@/lib/queries/projects-list";
+import {
+  listProjectsDirectory,
+  listProjectsForEmployee,
+} from "@/lib/queries/projects-list";
+import { getCurrentUser } from "@/lib/auth/access";
 import { revalidateProject } from "@/lib/revalidate";
 import { formatMoney } from "@/lib/format";
 import {
@@ -22,6 +26,7 @@ import {
 } from "@/lib/requirements-pricing";
 import {
   projectCreateStrictSchema,
+  projectAssigneesUpdateSchema,
   projectUpdateSchema,
   requirementsGatheringAdvanceSchema,
   proposalPricingSaveSchema,
@@ -70,10 +75,17 @@ function parseDate(v: string | null | undefined) {
 }
 
 export async function listProjects() {
-  return listProjectsDirectory();
+  const user = await getCurrentUser();
+  if (!user) return [];
+  if (user.permissions.viewAllProjects) {
+    return listProjectsDirectory();
+  }
+  if (!user.employeeId) return [];
+  return listProjectsForEmployee(user.employeeId);
 }
 
 export async function createProject(input: unknown) {
+  const user = await getCurrentUser();
   const raw = projectCreateStrictSchema.parse(input);
   const deadline = parseDate(raw.deadline ?? null);
   const startDate = parseDate(raw.startDate ?? null);
@@ -89,9 +101,27 @@ export async function createProject(input: unknown) {
       priority,
       progress: progressForStage(INITIAL_LIFECYCLE_STAGE),
       tags: raw.tags,
+      createdById: user?.id ?? null,
+      assignees: raw.assigneeIds.length
+        ? { connect: raw.assigneeIds.map((id) => ({ id })) }
+        : undefined,
     } as Prisma.ProjectUncheckedCreateInput,
   });
   revalidateProject();
+}
+
+export async function updateProjectAssignees(input: unknown) {
+  const parsed = projectAssigneesUpdateSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: "Invalid assignees." };
+
+  await prisma.project.update({
+    where: { id: parsed.data.projectId, deletedAt: null },
+    data: {
+      assignees: { set: parsed.data.assigneeIds.map((id) => ({ id })) },
+    },
+  });
+  revalidateProject();
+  return { ok: true as const };
 }
 
 export async function updateProject(input: unknown) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PanelLeftClose, PanelRightOpen } from "lucide-react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -15,17 +16,21 @@ import {
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebarNav } from "@/components/admin/admin-sidebar-nav";
 import { DashboardSearchProvider } from "@/components/providers/dashboard-search-provider";
-import { siteConfig } from "@/lib/site";
-import type { SessionUser } from "@/lib/auth/session";
+import type { AccessContext } from "@/lib/auth/permissions";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "ezweb-sidebar-collapsed";
+
+export type ShellUser = {
+  name: string;
+  email: string;
+} & AccessContext;
 
 export function AdminShell({
   user,
   children,
 }: {
-  user: SessionUser;
+  user: ShellUser;
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -75,24 +80,12 @@ export function AdminShell({
                 "hover:border-sidebar-border/60 hover:bg-sidebar-accent/40 hover:shadow-[0_8px_28px_-18px_rgba(0,0,0,0.25)]"
               )}
             >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary/25 to-sidebar-primary/10 shadow-[inset_0_0_0_1px_hsl(var(--sidebar-primary)/0.25)] ring-1 ring-sidebar-border/40">
-                <span className="text-[11px] font-bold tracking-tight text-sidebar-primary">
-                  EZ
-                </span>
-              </div>
-              <div
-                className={cn(
-                  "min-w-0 overflow-hidden transition-[opacity,width] duration-200 ease-out",
-                  collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                )}
-              >
-                <span className="block truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
-                  {siteConfig.name}
-                </span>
-                <span className="block truncate text-[11px] text-muted-foreground">
-                  Control center
-                </span>
-              </div>
+              <BrandLogo
+                size="sm"
+                showName={!collapsed}
+                priority
+                className="min-w-0"
+              />
             </Link>
           </div>
 
@@ -100,6 +93,7 @@ export function AdminShell({
             collapsed={collapsed}
             showTooltips={collapsed}
             onNavigate={() => setMobileOpen(false)}
+            access={{ role: user.role, permissions: user.permissions }}
           />
 
           <div className="mt-auto shrink-0 border-t border-sidebar-border/50 bg-sidebar-accent/[0.08] p-2 backdrop-blur-sm">
@@ -142,9 +136,7 @@ export function AdminShell({
             className="w-[min(100%,20rem)] border-sidebar-border/70 bg-sidebar/95 p-0 backdrop-blur-xl sm:max-w-xs"
           >
             <SheetHeader className="border-b border-sidebar-border/60 px-4 py-3 text-left">
-              <SheetTitle className="text-sm font-semibold tracking-tight">
-                {siteConfig.name}
-              </SheetTitle>
+              <BrandLogo size="sm" showName />
             </SheetHeader>
             <ScrollArea className="h-[calc(100dvh-4.5rem)]">
               <AdminSidebarNav
@@ -152,6 +144,7 @@ export function AdminShell({
                 showTooltips={false}
                 onNavigate={() => setMobileOpen(false)}
                 variant="sheet"
+                access={{ role: user.role, permissions: user.permissions }}
               />
             </ScrollArea>
           </SheetContent>
@@ -164,7 +157,10 @@ export function AdminShell({
             collapsed ? "lg:pl-[76px]" : "lg:pl-[268px]"
           )}
         >
-          <AdminHeader user={user} onOpenMobileNav={() => setMobileOpen(true)} />
+          <AdminHeader
+            user={{ name: user.name, email: user.email, role: user.role }}
+            onOpenMobileNav={() => setMobileOpen(true)}
+          />
           <Separator className="opacity-50" />
           <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
             <div

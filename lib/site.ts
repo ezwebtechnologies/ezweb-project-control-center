@@ -10,6 +10,8 @@ function requirePublicSiteUrl(): string {
 
 export const siteConfig = {
   name: "EZWeb Project Control Center",
+  shortName: "EZWeb",
+  logoSrc: "/logo.png",
   description:
     "Control center for MuleSoft and web projects: planning, delivery, and operations in one place.",
   url: requirePublicSiteUrl(),

@@ -6,6 +6,7 @@ import { getClient } from "@/app/actions/clients";
 import { ClientDetailActions } from "@/components/clients/client-detail-actions";
 import { ClientPortfolio } from "@/components/clients/client-portfolio";
 import { buttonVariants } from "@/components/ui/button";
+import { requirePermission } from "@/lib/auth/access";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -21,6 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ClientDetailPage({ params }: PageProps) {
+  await requirePermission("viewClients");
   const { id } = await params;
   const client = await getClient(id);
   if (!client) notFound();

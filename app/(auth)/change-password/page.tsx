@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ChangePasswordForm } from "@/components/auth/change-password-form";
-import { getSession } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/access";
 
 export const metadata: Metadata = {
   title: "Set password",
@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ChangePasswordPage() {
-  const session = await getSession();
-  if (!session) redirect("/login");
-  if (!session.mustChangePassword) redirect("/dashboard");
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (!user.mustChangePassword) redirect("/dashboard");
 
   return (
     <div className="w-full max-w-[420px]">

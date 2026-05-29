@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { getSession } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/access";
 
 export const dynamic = "force-dynamic";
 
@@ -9,9 +9,20 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  if (!session) redirect("/login");
-  if (session.mustChangePassword) redirect("/change-password");
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.mustChangePassword) redirect("/change-password");
 
-  return <AdminShell user={session}>{children}</AdminShell>;
+  return (
+    <AdminShell
+      user={{
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        permissions: user.permissions,
+      }}
+    >
+      {children}
+    </AdminShell>
+  );
 }

@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { BrandLogoMark } from "@/components/brand/brand-logo-mark";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -48,45 +49,6 @@ function IndeterminateProgress() {
   );
 }
 
-function BrandMark({ size = "md" }: { size?: "md" | "lg" }) {
-  return (
-    <div
-      className={cn(
-        "relative grid place-items-center",
-        size === "lg" ? "size-20" : "size-14"
-      )}
-    >
-      {/* spinning conic ring */}
-      <div
-        aria-hidden
-        className={cn(
-          "absolute inset-0 rounded-full animate-orbit",
-          "bg-[conic-gradient(from_120deg,transparent_0deg,oklch(0.62_0.2_264/0.65)_120deg,transparent_220deg)]",
-          "[mask-image:radial-gradient(circle,transparent_55%,black_57%,black_98%,transparent_100%)]",
-          "[-webkit-mask-image:radial-gradient(circle,transparent_55%,black_57%,black_98%,transparent_100%)]"
-        )}
-      />
-      {/* mark */}
-      <div
-        className={cn(
-          "relative grid place-items-center rounded-2xl",
-          "bg-sidebar/80 ring-1 ring-sidebar-border/50 shadow-[inset_0_0_0_1px_oklch(1_0_0/6%)]",
-          size === "lg" ? "size-14" : "size-10"
-        )}
-      >
-        <span
-          className={cn(
-            "font-semibold tracking-tight text-sidebar-primary",
-            size === "lg" ? "text-base" : "text-[12px]"
-          )}
-        >
-          EZ
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function FullscreenLoading({ headline, subline }: { headline: string; subline: string }) {
   return (
     <div
@@ -111,7 +73,7 @@ function FullscreenLoading({ headline, subline }: { headline: string; subline: s
       />
 
       <div className="relative flex w-full max-w-md flex-col items-center text-center animate-route-fade">
-        <BrandMark size="lg" />
+        <BrandLogoMark size="lg" />
 
         <h2 className="mt-7 text-base font-semibold tracking-tight text-foreground">
           {headline}
@@ -156,7 +118,7 @@ function SectionLoading({
       {/* page header strip */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <BrandMark />
+          <BrandLogoMark />
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
               {headline}
@@ -208,7 +170,7 @@ function SectionLoading({
         </>
       ) : (
         <div className="mt-8 flex h-64 items-center justify-center rounded-2xl border border-border/50 bg-card/40 p-6 shadow-sm backdrop-blur-md">
-          <BrandMark />
+          <BrandLogoMark />
         </div>
       )}
     </div>

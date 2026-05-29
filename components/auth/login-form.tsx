@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { login, type LoginState } from "@/app/actions/auth";
@@ -33,6 +34,7 @@ export function LoginForm() {
     >
       <Card className="border-border/60 bg-card/70 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <CardHeader className="space-y-1 pb-2">
+          <BrandLogo size="md" className="mb-1" priority />
           <CardTitle className="text-2xl font-semibold tracking-tight">
             Welcome back
           </CardTitle>

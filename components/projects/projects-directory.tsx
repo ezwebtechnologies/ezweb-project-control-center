@@ -44,10 +44,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PageTitle } from "@/components/brand/page-title";
 import { cn } from "@/lib/utils";
 import { useDashboardSearch } from "@/components/providers/dashboard-search-provider";
 
 type ClientOpt = { id: string; companyName: string; name: string };
+type EmployeeOpt = { id: string; name: string };
 
 type ProjectRow = {
   id: string;
@@ -55,6 +57,8 @@ type ProjectRow = {
   deadline: Date | string | null;
   status: string;
   client: ClientOpt;
+  owner: string | null;
+  assignees: EmployeeOpt[];
 };
 
 const schema = projectCreateFormSchema;
@@ -89,13 +93,18 @@ function FieldError({ message }: { message?: string }) {
 export function ProjectsDirectory({
   projects,
   clients,
+  employees,
+  canCreate = true,
 }: {
   projects: ProjectRow[];
   clients: ClientOpt[];
+  employees: EmployeeOpt[];
+  canCreate?: boolean;
 }) {
   const router = useRouter();
   const { query } = useDashboardSearch();
   const [open, setOpen] = useState(false);
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
 
   const getEmptyForm = useCallback(
@@ -138,6 +147,7 @@ export function ProjectsDirectory({
 
   function openCreate() {
     reset(getEmptyForm());
+    setAssigneeIds([]);
     setOpen(true);
   }
 
@@ -150,34 +160,46 @@ export function ProjectsDirectory({
         startDate: values.startDate?.trim() ? values.startDate : null,
         deadline: values.deadline,
         tags: [],
+        assigneeIds,
       });
       setOpen(false);
       reset(getEmptyForm());
+      setAssigneeIds([]);
       router.refresh();
     });
+  }
+
+  function toggleAssignee(id: string) {
+    setAssigneeIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Create projects with an existing client.
-          </p>
-        </div>
-        <Button
-          type="button"
-          onClick={openCreate}
-          className="w-full gap-2 rounded-full sm:w-auto"
-          disabled={!clients.length}
-        >
-          <Plus className="size-4" />
-          New project
-        </Button>
+        <PageTitle
+          title="Projects"
+          description={
+            canCreate
+              ? "Create projects with an existing client."
+              : "Projects assigned to you."
+          }
+        />
+        {canCreate ? (
+          <Button
+            type="button"
+            onClick={openCreate}
+            className="w-full gap-2 rounded-full sm:w-auto"
+            disabled={!clients.length}
+          >
+            <Plus className="size-4" />
+            New project
+          </Button>
+        ) : null}
       </div>
 
-      {!clients.length ? (
+      {canCreate && !clients.length ? (
         <p className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
           Add a client first in{" "}
           <Link href="/clients" className="font-medium text-foreground underline-offset-4 hover:underline">
@@ -191,10 +213,15 @@ export function ProjectsDirectory({
         {visibleProjects.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-muted-foreground">
             {projects.length === 0 ? (
-              <>
-                No projects yet. Use <span className="font-medium text-foreground">New project</span>{" "}
-                to add one.
-              </>
+              canCreate ? (
+                <>
+                  No projects yet. Use{" "}
+                  <span className="font-medium text-foreground">New project</span>{" "}
+                  to add one.
+                </>
+              ) : (
+                <>No projects assigned to you yet.</>
+              )
             ) : (
               <>No projects match your search.</>
             )}
@@ -207,6 +234,7 @@ export function ProjectsDirectory({
                 <TableHead className="font-semibold">Client</TableHead>
                 <TableHead className="min-w-[8.5rem] font-semibold">Status</TableHead>
                 <TableHead className="font-semibold">Deadline</TableHead>
+                <TableHead className="font-semibold">Assignees</TableHead>
                 <TableHead className="font-semibold">Priority</TableHead>
                 <TableHead className="min-w-[6.5rem] text-center font-semibold">Progress</TableHead>
               </TableRow>
@@ -238,6 +266,15 @@ export function ProjectsDirectory({
                     </TableCell>
                     <TableCell className="text-sm tabular-nums text-muted-foreground">
                       {formatDate(p.deadline)}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {p.assignees.length === 0 ? (
+                        <span className="text-muted-foreground/70">Unassigned</span>
+                      ) : (
+                        <span className="line-clamp-2 max-w-[10rem]">
+                          {p.assignees.map((a) => a.name).join(", ")}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -359,6 +396,36 @@ export function ProjectsDirectory({
                   />
                   <FieldError message={formState.errors.deadline?.message} />
                 </div>
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>Assign employees</Label>
+                {employees.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    No employees to assign yet.
+                  </p>
+                ) : (
+                  <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-border/50 bg-muted/20 p-2">
+                    {employees.map((e) => (
+                      <label
+                        key={e.id}
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/40"
+                      >
+                        <input
+                          type="checkbox"
+                          className="size-4 accent-primary"
+                          checked={assigneeIds.includes(e.id)}
+                          onChange={() => toggleAssignee(e.id)}
+                        />
+                        <span>{e.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Employees without “view all projects” will only see projects
+                  assigned to them.
+                </p>
               </div>
             </div>
 

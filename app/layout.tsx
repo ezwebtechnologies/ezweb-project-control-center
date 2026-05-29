@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: [{ url: siteConfig.logoSrc, type: "image/png" }],
+    apple: [{ url: siteConfig.logoSrc, type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -28,11 +32,13 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: siteConfig.name,
     description: siteConfig.description,
+    images: [{ url: siteConfig.logoSrc, alt: siteConfig.shortName }],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
+    images: [siteConfig.logoSrc],
   },
   robots: {
     index: true,

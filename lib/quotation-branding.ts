@@ -19,9 +19,16 @@ export function formatSenderPhone(phone: string): string {
 
 let logoDataUriCache: string | null | undefined;
 
-/** Inline SVG logo for HTML email (data URI). */
+/** Inline logo for HTML email (data URI). Prefers logo.png, falls back to SVG. */
 export function getQuotationLogoDataUri(): string | null {
   if (logoDataUriCache !== undefined) return logoDataUriCache;
+  try {
+    const png = readFileSync(join(process.cwd(), "public", "logo.png"));
+    logoDataUriCache = `data:image/png;base64,${png.toString("base64")}`;
+    return logoDataUriCache;
+  } catch {
+    /* fall back to SVG */
+  }
   try {
     const svg = readFileSync(
       join(process.cwd(), "public", "company-logo.svg"),

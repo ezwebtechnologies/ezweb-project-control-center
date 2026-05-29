@@ -64,9 +64,11 @@ function chartCardClassName() {
 export function DashboardOverviewCharts({
   finance,
   pipeline,
+  showFinancials = true,
 }: {
   finance: FinanceRow[];
   pipeline: PipelineRow[];
+  showFinancials?: boolean;
 }) {
   const financeData = finance.map((r) => ({
     label: r.label,
@@ -85,7 +87,8 @@ export function DashboardOverviewCharts({
   const pipelineChartHeight = 248;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className={showFinancials ? "grid gap-4 lg:grid-cols-2" : "grid gap-4"}>
+      {showFinancials ? (
       <Card className={chartCardClassName()}>
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.45] dark:opacity-[0.35]"
@@ -193,6 +196,7 @@ export function DashboardOverviewCharts({
           </div>
         </CardContent>
       </Card>
+      ) : null}
 
       <Card className={chartCardClassName()}>
         <div

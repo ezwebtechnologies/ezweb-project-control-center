@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PaymentsWorkspace } from "@/components/payments/payments-workspace";
+import { requirePermission } from "@/lib/auth/access";
 import { listExpenses } from "@/lib/queries/expenses";
 import { listPaymentsWorkspaceProjects } from "@/lib/queries/payments-workspace";
 
@@ -29,6 +30,7 @@ type PageProps = {
 };
 
 export default async function PaymentsPage({ searchParams }: PageProps) {
+  await requirePermission("viewPayments");
   const sp = await searchParams;
   const projectQuery = typeof sp.project === "string" ? sp.project.trim() : "";
   const viewRaw = typeof sp.view === "string" ? sp.view.trim().toLowerCase() : "";

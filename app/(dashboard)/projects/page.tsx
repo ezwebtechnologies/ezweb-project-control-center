@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { listClients } from "@/app/actions/clients";
+import { listEmployees } from "@/app/actions/employees";
 import { listProjects } from "@/app/actions/projects";
 import { ProjectsDirectory } from "@/components/projects/projects-directory";
+import { getCurrentUser } from "@/lib/auth/access";
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -37,20 +39,36 @@ function toIso(d: Date | string | null | undefined): string | null {
 }
 
 export default async function ProjectsPage() {
-  const [projects, clients] = await Promise.all([listProjects(), listClients()]);
+  const user = await getCurrentUser();
+  // Creating a project requires picking a client, so only people who can see
+  // clients (Sales, Managers, Admins) may create. Developers work assigned only.
+  const canCreate = user?.permissions.viewClients ?? false;
+  const [projects, clients, employees] = await Promise.all([
+    listProjects(),
+    canCreate ? listClients() : Promise.resolve([]),
+    canCreate ? listEmployees() : Promise.resolve([]),
+  ]);
   const payload = projects.map((p) => ({
     id: p.id,
     name: p.name,
     deadline: toIso(p.deadline),
     status: p.status,
     client: p.client,
+    owner: p.createdBy?.name ?? null,
+    assignees: p.assignees.map((a) => ({ id: a.id, name: a.name })),
   }));
   const clientOpts = clients.map((c) => ({
     id: c.id,
     companyName: c.companyName,
     name: c.name,
   }));
+  const employeeOpts = employees.map((e) => ({ id: e.id, name: e.name }));
   return (
-    <ProjectsDirectory projects={payload} clients={clientOpts} />
+    <ProjectsDirectory
+      projects={payload}
+      clients={clientOpts}
+      employees={employeeOpts}
+      canCreate={canCreate}
+    />
   );
 }

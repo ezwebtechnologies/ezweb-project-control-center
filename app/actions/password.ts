@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth/access";
 import { getDefaultEmployeePassword } from "@/lib/auth/default-password";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import {
@@ -120,9 +121,9 @@ export type ResetEmployeePasswordResult =
 export async function resetEmployeePassword(
   input: unknown
 ): Promise<ResetEmployeePasswordResult> {
-  const session = await getSession();
-  if (!session) {
-    return { ok: false, error: "Sign in to reset employee passwords." };
+  const admin = await getCurrentUser();
+  if (!admin || admin.role !== "ADMIN") {
+    return { ok: false, error: "Only admins can reset employee passwords." };
   }
 
   const parsed = adminResetEmployeePasswordSchema.safeParse(input);

@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { Plus } from "lucide-react";
 import { createClient } from "@/app/actions/clients";
+import { PageTitle } from "@/components/brand/page-title";
 import { clientCreateSchema } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,9 +98,7 @@ export function ClientsManager({ clients }: { clients: ClientRow[] }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Clients</h1>
-        </div>
+        <PageTitle title="Clients" description="Customer accounts and contacts." />
         <Button
           onClick={openCreate}
           className="w-full shrink-0 gap-2 rounded-full sm:w-auto"

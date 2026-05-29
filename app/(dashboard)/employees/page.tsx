@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { listEmployees } from "@/app/actions/employees";
 import { EmployeesManager } from "@/components/employees/employees-manager";
+import { requireAdmin } from "@/lib/auth/access";
 import { getDefaultEmployeePassword } from "@/lib/auth/default-password";
 
 export const metadata: Metadata = {
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default async function EmployeesPage() {
+  await requireAdmin();
+
   const [employees, defaultEmployeePassword] = await Promise.all([
     listEmployees(),
     Promise.resolve(getDefaultEmployeePassword()),
@@ -23,6 +26,11 @@ export default async function EmployeesPage() {
     role: e.role,
     userId: e.userId,
     pendingPasswordReset: e.user?.mustChangePassword ?? false,
+    accountRole: e.user?.role ?? null,
+    canViewPayments: e.user?.canViewPayments ?? false,
+    canViewClients: e.user?.canViewClients ?? true,
+    canViewAllProjects: e.user?.canViewAllProjects ?? false,
+    assignedProjectCount: e._count.assignedProjects,
   }));
 
   return (

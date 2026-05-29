@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { ProfileChangePasswordForm } from "@/components/auth/profile-change-password-form";
 import { getSession } from "@/lib/auth/session";
 import { formatSenderPhone, quotationBranding } from "@/lib/quotation-branding";
@@ -23,11 +24,14 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
   return (
     <div className="mx-auto max-w-lg space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Your signed-in account for this workspace.
-        </p>
+      <div className="flex items-start gap-4">
+        <BrandLogo size="lg" />
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your signed-in account for this workspace.
+          </p>
+        </div>
       </div>
       <dl className="divide-y divide-border/50 rounded-2xl border border-border/50 bg-card/40 px-5 py-2 shadow-sm backdrop-blur-md">
         <div className="grid gap-1 py-4 sm:grid-cols-[8rem_1fr]">

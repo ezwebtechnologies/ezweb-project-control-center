@@ -6,6 +6,7 @@ import { verifyPassword } from "@/lib/auth/password";
 import {
   clearSessionCookie,
   createSessionToken,
+  getSession,
   setSessionCookie,
 } from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validations";
@@ -34,6 +35,7 @@ export async function login(
       name: true,
       passwordHash: true,
       mustChangePassword: true,
+      role: true,
     },
   });
 
@@ -49,6 +51,7 @@ export async function login(
     email: user.email,
     name: user.name?.trim() || user.email,
     mustChangePassword: user.mustChangePassword,
+    role: user.role,
   });
   await setSessionCookie(token);
 
@@ -72,4 +75,16 @@ export async function login(
 export async function logout() {
   await clearSessionCookie();
   redirect("/login");
+}
+
+/** Clears JWT cookie when it no longer matches a live user (e.g. after DB reset). */
+export async function clearStaleSession(): Promise<void> {
+  const session = await getSession();
+  if (!session) return;
+
+  const user = await prisma.user.findFirst({
+    where: { id: session.userId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!user) await clearSessionCookie();
 }

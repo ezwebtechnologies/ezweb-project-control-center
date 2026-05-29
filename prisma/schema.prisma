@@ -11,7 +11,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- Auth (future NextAuth / credentials) ---
+// --- Auth (credentials) ---
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
 
 model User {
   id            String    @id @default(uuid()) @db.Uuid
@@ -21,11 +26,17 @@ model User {
   image         String?
   passwordHash         String?
   mustChangePassword   Boolean   @default(false)
+  role                 Role      @default(EMPLOYEE)
+  // Per-user visibility. Admins bypass these (always full access).
+  canViewPayments      Boolean   @default(false)
+  canViewClients       Boolean   @default(false)
+  canViewAllProjects   Boolean   @default(false)
   createdAt            DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  employee Employee?
+  employee        Employee?
+  createdProjects Project[] @relation("ProjectCreatedBy")
 
   @@index([email])
 }
@@ -125,17 +136,21 @@ model Project {
   /// Revisions sign-off, hypercare checklist (JSON).
   postDeliveryData Json?
   archivedAt  DateTime?
+  createdById String?         @db.Uuid
+  createdBy   User?           @relation("ProjectCreatedBy", fields: [createdById], references: [id])
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   deletedAt   DateTime?
 
-  tasks    Task[]
-  payments Payment[]
+  tasks     Task[]
+  payments  Payment[]
+  assignees Employee[]        @relation("ProjectAssignees")
 
   @@index([clientId])
   @@index([status, deletedAt])
   @@index([archivedAt])
   @@index([deletedAt, archivedAt])
+  @@index([createdById])
 }
 
 model Label {
@@ -242,6 +257,8 @@ model Employee {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime?
+
+  assignedProjects Project[] @relation("ProjectAssignees")
 
   @@index([deletedAt])
 }

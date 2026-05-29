@@ -16,8 +16,15 @@ const fetchEmployeesDirectory = unstable_cache(
         role: true,
         userId: true,
         user: {
-          select: { mustChangePassword: true },
+          select: {
+            mustChangePassword: true,
+            role: true,
+            canViewPayments: true,
+            canViewClients: true,
+            canViewAllProjects: true,
+          },
         },
+        _count: { select: { assignedProjects: true } },
         createdAt: true,
       },
     }),
